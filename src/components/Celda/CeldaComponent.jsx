@@ -1,27 +1,23 @@
 import React from "react";
-import { useState } from "react";
-import "./CeldaComponent.css"
-import Celda from "@/classes/Celda"
 
-const CeldaComponent = ({fila, columna, currentPlayerTurn, setCurrentPlayerTurn}) => {
-    let celda = new Celda(fila, columna);
-    const [active, setActive] = useState(false);
 
-    const activarCelda = () => {
-        setActive(!active);
-        setCurrentPlayerTurn(currentPlayerTurn === 'player' ? 'rival' : 'player');
-    }
-
-    return(
-        <>
-            <span 
-                className={`celda ${active ? "celdaActiva" : ""}`} 
-                onClick={activarCelda}
-            >
-                .
-            </span>
-        </>
-    )
-}
+const CeldaComponent = ({
+  fila,
+  columna,
+  inPreview,
+  onHover,
+  onLeave,
+  onClick
+}) => {
+  return (
+    <span
+      onMouseEnter={() => onHover && onHover(fila, columna)}
+      onMouseLeave={() => onLeave && onLeave()}
+      onClick={() => onClick && onClick(fila, columna)}
+    >
+      .
+    </span>
+  );
+};
 
 export default CeldaComponent;

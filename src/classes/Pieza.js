@@ -15,6 +15,10 @@ class Pieza {
         }
     }
 
+    isSunk() {
+        return this.sunk;
+    }
+    
     setSize(size) {
         this.size = size;
     }

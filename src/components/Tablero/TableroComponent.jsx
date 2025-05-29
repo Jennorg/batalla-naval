@@ -1,46 +1,60 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 
 import CeldaComponent from "@/components/Celda/CeldaComponent";
-
 import "./TableroComponent.css";
 
-const BOARD_SIZE = 10; // Tamaño del tablero
+const TableroComponent = ({
+  tablero,
+  onCellClick, // Cambiado de onPlaceShip a un manejador de clic genérico
+  onCellMouseEnter,
+  onBoardMouseLeave,
+  previewCells = [],
+  previewInvalidCells = [],
+  isPlayerBoard, // Para saber si es el tablero del jugador (para colocar) o del rival (para atacar)
+  gamePhase,
+  selectedShipTypeId, // Para saber si hay un barco seleccionado para colocar
+  disabled, // Para deshabilitar interacciones en el tablero del rival durante la colocación
+}) => {
+  const handleCellClick = (row, col) => {
+    if (disabled) return;
+    onCellClick(row, col);
+  };
 
-const TableroComponent = ({isActive, currentPlayerTurn, setCurrentPlayerTurn}) => {  
-  
-  const renderTablero = () => {
-    let tableroElements = [];
-
-    for (let i = 0; i < BOARD_SIZE; i++) {
-      for (let j = 0; j < BOARD_SIZE ;j++) {
-        tableroElements.push(
-            <CeldaComponent 
-              key={`${i}-${j}`}
-              fila={i} 
-              columna={j}
-              currentPlayerTurn={currentPlayerTurn}
-              setCurrentPlayerTurn={setCurrentPlayerTurn}
-            />
-        )
-      }
+  const getCellClass = (cell, r, c) => {
+    let className = 'cell';
+    if (cell && cell.isHit) {
+      className += cell.isOccupied ? ' cell-hit' : ' cell-miss';
+    } else if (isPlayerBoard && cell && cell.isOccupied) {
+      className += ' cell-ship'; // Mostrar barcos del jugador
     }
 
-    return tableroElements;
-  }
+    if (previewCells.some(p => p.row === r && p.col === c)) {
+      className += ' cell-preview';
+    }
+    if (previewInvalidCells.some(p => p.row === r && p.col === c)) {
+      className += ' cell-preview-invalid';
+    }
+    return className;
+  };
 
-  return(
-    <>
-      <div className="tablero">
-        {!isActive && (
+  return (
+    <div
+      className="tablero-grid"
+      onMouseLeave={onBoardMouseLeave} // Evento para cuando el mouse sale del tablero
+    >
+      {tablero.grid.map((rowArr, rowIndex) =>
+        rowArr.map((cell, colIndex) => (
           <div
-            className="tablero-overlay"
-          />
-        )}
-        {renderTablero()}
-      </div>
-    </>
-  )  
+            key={`${rowIndex}-${colIndex}`}
+            className={getCellClass(cell, rowIndex, colIndex)}
+            onClick={() => handleCellClick(rowIndex, colIndex)}
+            onMouseEnter={() => onCellMouseEnter && onCellMouseEnter(rowIndex, colIndex)}
+          >
+          </div>
+        ))
+      )}
+    </div>
+  );
 };
 
 export default TableroComponent;
