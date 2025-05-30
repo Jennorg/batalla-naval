@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { io } from 'socket.io-client';
 
 import TableroComponent from '@/components/Tablero/TableroComponent'
 import PiezaComponent from '@/components/Pieza/PiezaComponent'
@@ -43,6 +44,76 @@ function App() {
   const [currentPlayerTurn, setCurrentPlayerTurn] = useState('player'); // 'player' o 'rival'
   const [gamePhase, setGamePhase] = useState(FASES_JUEGO.COLOCACION);
   const [message, setMessage] = useState('Coloca tus barcos. Selecciona un barco y haz clic en el tablero.');
+
+  // --- SOCKET.IO CLIENT ---
+  const socketRef = useRef(null);
+  const myPlayerId = useRef(null);
+
+  useEffect(() => {
+    // Solo conectar una vez
+    socketRef.current = io('http://localhost:3000');
+
+    socketRef.current.on('connectionSuccess', (data) => {
+      console.log(data.message, "Mi ID:", data.playerId);
+      myPlayerId.current = data.playerId;
+    });
+
+    socketRef.current.on('statusUpdate', (data) => {
+      console.log("Actualización de estado:", data.message);
+    });
+
+    socketRef.current.on('waitingPlayersCountUpdate', (data) => {
+      console.log(`Jugadores esperando en total: ${data.count}`);
+    });
+
+    socketRef.current.on('gameStarted', (data) => {
+      console.log('¡Juego iniciado!', data);
+      if (data.turn === data.yourPlayerId) {
+        setCurrentPlayerTurn('player');
+        setMessage("Es tu turno.");
+      } else {
+        setCurrentPlayerTurn('rival');
+        setMessage(`Esperando turno de oponente.`);
+      }
+    });
+
+    socketRef.current.on('opponentLeft', (data) => {
+      console.warn(data.message);
+      setMessage('El oponente abandonó la partida.');
+    });
+
+    socketRef.current.on('actionError', (error) => {
+      console.error("Error de acción:", error.message);
+      setMessage(error.message);
+    });
+
+    socketRef.current.on('actionReceived', (data) => {
+      console.log("Acción recibida del oponente:", data.action, "De:", data.sender);
+      // Aplica la acción del oponente a tu estado del juego local
+    });
+
+    socketRef.current.on('turnUpdate', (data) => {
+      console.log(`Actualización de turno. Siguiente turno: ${data.nextTurn}`);
+      if (data.nextTurn === myPlayerId.current) {
+        setCurrentPlayerTurn('player');
+        setMessage("¡Ahora es tu turno!");
+      } else {
+        setCurrentPlayerTurn('rival');
+        setMessage("Turno del oponente.");
+      }
+    });
+
+    return () => {
+      socketRef.current.disconnect();
+    };
+  }, []);
+
+  // Función para enviar una acción (ejemplo)
+  function sendPlayerAction(actionData) {
+    if (socketRef.current) {
+      socketRef.current.emit('player-action', actionData);
+    }
+  }
 
   // Función para reiniciar el juego
   const resetGame = useCallback(() => {
