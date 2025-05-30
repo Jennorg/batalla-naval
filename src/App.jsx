@@ -16,8 +16,6 @@ import { useSocketManager } from './hooks/useSocketManager'; // Nueva ruta
 
 import './App.css';
 
-// placeRivalShipsRandomly se mantiene aquí por simplicidad de dependencias con SHIP_TYPES_CONFIG
-// y las clases de barcos que SHIP_TYPES_CONFIG ya importa.
 const placeRivalShipsRandomly = (board, currentShipTypesConfig) => {
   currentShipTypesConfig.forEach(shipConfig => {
     for (let i = 0; i < shipConfig.initialCount; i++) {
@@ -80,7 +78,6 @@ function App() {
 
   const handleWaitingPlayersCountUpdate = useCallback((data) => {
     console.log(`Jugadores esperando en total: ${data.count}`);
-    // Podrías mostrar esto en la UI si es relevante durante la espera
   }, []);
 
   const handleGameStarted = useCallback((data) => {

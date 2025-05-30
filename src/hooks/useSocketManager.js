@@ -19,7 +19,7 @@ export const useSocketManager = (eventHandlers) => {
 
   useEffect(() => {
     // Conectar al servidor de Socket.IO
-    socketRef.current = io('http://localhost:3000', {
+    socketRef.current = io('https://backend-batalla-naval-cyan.vercel.app/', {
         reconnectionAttempts: 5, // Intentar reconectar algunas veces
         reconnectionDelay: 3000, // Esperar 3 segundos entre intentos
     });
