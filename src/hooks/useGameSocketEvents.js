@@ -1,12 +1,12 @@
 import { useEffect, useRef, useCallback } from 'react';
 import io from 'socket.io-client';
 import FASES_JUEGO from '@/assets/FASES_DE_JUEGO.JS';
-import Tablero from '@/classes/Tablero';
-import Pieza from '@/classes/Pieza'
-import Celda from '@/classes/Celda'
+import Tablero from '@/classes/tablero/Tablero';
+import Pieza from '@/classes/ships/Pieza'
+import Celda from '@/classes/tablero/Celda'
 
-const SOCKET_SERVER_URL = 'https://backend-batallanaval.onrender.com'; 
-// const SOCKET_SERVER_URL = 'http://localhost:3000'; 
+// const SOCKET_SERVER_URL = 'https://backend-batallanaval.onrender.com'; 
+const SOCKET_SERVER_URL = 'http://localhost:3000'; 
 
 export const useGameSocketEvents = ({
   mode,
@@ -46,7 +46,7 @@ export const useGameSocketEvents = ({
         const { coordinates } = action;
         const { row, col } = coordinates;
         setTableroPlayer(prevBoard => {
-          const attackResult = prevBoard.attackCell(row, col); // <-- Vuelve a atacar localmente
+          const attackResult = prevBoard.attackCell(row, col);
           setMessage(`Te han atacado en [${row},${col}]: ${attackResult.message}`);
 
 

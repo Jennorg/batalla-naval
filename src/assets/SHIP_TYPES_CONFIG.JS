@@ -1,8 +1,8 @@
-import LanchaClass from '@/classes/Lancha';
-import AcorazadoClass from '@/classes/Acorazado';
-import BuqueClass from '@/classes/Buque';
-import PortaavionesClass from '@/classes/Portaaviones';
-import SubmarinoClass from '@/classes/Submarino';
+import LanchaClass from '@/classes/ships/Lancha';
+import AcorazadoClass from '@/classes/ships/Acorazado';
+import BuqueClass from '@/classes/ships/Buque';
+import PortaavionesClass from '@/classes/ships/Portaaviones';
+import SubmarinoClass from '@/classes/ships/Submarino';
 
 export const SHIP_TYPES_CONFIG = [
   { id: 'lancha', name: 'Lancha', size: 1, ShipClass: LanchaClass, initialCount: 1 },  

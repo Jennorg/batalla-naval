@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import TableroClass from '@/classes/Tablero';
+import TableroClass from '@/classes/tablero/Tablero';
 import FASES_JUEGO from '@/assets/FASES_DE_JUEGO.JS';
 import { SHIP_TYPES_CONFIG } from '@/assets/SHIP_TYPES_CONFIG.JS';
 

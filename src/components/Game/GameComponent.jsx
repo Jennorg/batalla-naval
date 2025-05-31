@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 import TableroComponent from '@/components/Tablero/TableroComponent';
 import PiezaComponent from '@/components/Pieza/PiezaComponent'; 
-import TableroClass from '@/classes/Tablero';
+import TableroClass from '@/classes/tablero/Tablero';
 import { placeRivalShipsRandomly } from '@/utils/gameSetup'; 
 
 import { SHIP_TYPES_CONFIG } from '@/assets/SHIP_TYPES_CONFIG.JS';

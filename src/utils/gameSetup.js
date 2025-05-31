@@ -1,4 +1,4 @@
-import TableroClass from '@/classes/Tablero'; 
+import TableroClass from '@/classes/tablero/Tablero'; 
 import { SHIP_TYPES_CONFIG } from '@/assets/SHIP_TYPES_CONFIG.JS';
 
 export const placeRivalShipsRandomly = (tablero, shipTypesConfig) => {
