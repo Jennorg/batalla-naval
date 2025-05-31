@@ -5,8 +5,8 @@ import Tablero from '@/classes/tablero/Tablero';
 import Pieza from '@/classes/ships/Pieza'
 import Celda from '@/classes/tablero/Celda'
 
-// const SOCKET_SERVER_URL = 'https://backend-batallanaval.onrender.com'; 
-const SOCKET_SERVER_URL = 'http://localhost:3000'; 
+const SOCKET_SERVER_URL = 'https://backend-batallanaval.onrender.com'; 
+// const SOCKET_SERVER_URL = 'http://localhost:3000'; 
 
 export const useGameSocketEvents = ({
   mode,
