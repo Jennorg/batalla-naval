@@ -17,9 +17,13 @@ export const useSocketManager = (eventHandlers) => {
     onTurnUpdate,
   } = eventHandlers;
 
+  const BACKEND_URL = 'https://backend-batallanaval.onrender.com'
+
+  // La forma correcta de inicializar:
+
   useEffect(() => {
     // Conectar al servidor de Socket.IO
-    socketRef.current = io('https://backend-batalla-naval-cyan.vercel.app/', {
+    socketRef.current = io(BACKEND_URL, {
         reconnectionAttempts: 5, // Intentar reconectar algunas veces
         reconnectionDelay: 3000, // Esperar 3 segundos entre intentos
     });
