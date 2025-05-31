@@ -43,6 +43,7 @@ function GameComponent({ mode }) {
         setCurrentPlayerTurn,
         setGamePhase,
         setTableroPlayer,
+        setTableroRival, // <-- Asegúrate de que esto se pasa también
         playerId, 
       })
     : { sendPlayerAction: () => {}, currentSocketPlayerId: { current: null } };
@@ -74,7 +75,7 @@ function GameComponent({ mode }) {
     setPreviewCells([]);
     setPreviewInvalidCells([]);
     
-    setCurrentPlayerTurn('player');
+    setCurrentPlayerTurn(null); // No hay turno inicial hasta que la batalla comience
     setGamePhase(FASES_JUEGO.COLOCACION);
     setMessage('Coloca tus barcos. Selecciona un barco y haz clic en el tablero.');
     setGameId(null);
@@ -139,9 +140,16 @@ const handleRivalTurnIA = useCallback(() => {
             setMessage('¡Batalla contra IA iniciada! Es tu turno.');
         } else if (mode === 'multiplayer') {
             setMessage('Barcos colocados. Esperando al oponente y al servidor...');
+            console.log('Enviando PLAYER_READY. gameId:', gameId, 'playerId:', playerId.current); 
+            sendPlayerAction({
+              type: 'PLAYER_READY',
+              gameId: gameId, 
+              playerId: playerId.current,
+              placedPlayerShipsData: tableroPlayer.toSimpleObject()
+          });
         }
     }
-  }, [placedPlayerShips, gamePhase, mode]);
+  }, [placedPlayerShips, gamePhase, mode, sendPlayerAction, gameId, playerId]);
 
 
   const {
@@ -227,7 +235,7 @@ const handleRivalTurnIA = useCallback(() => {
               <button onClick={handleShipOrientationChange} className="btn-orientacion">
                 Orientación: {placementOrientation.toUpperCase()}
               </button>
-              <button onClick={handleStartBattle} className="btn-batalla">
+              <button onClick={handleStartBattle} className="btn-batalla" disabled={placedPlayerShips.length < SHIP_TYPES_CONFIG.reduce((sum, type) => sum + type.initialCount, 0)}>
                 {mode === 'multiplayer' ? "Estoy Listo (Barcos Colocados)" : "Iniciar Batalla (vs IA)"}
               </button>
             </div>
