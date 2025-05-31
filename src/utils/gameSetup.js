@@ -1,26 +1,32 @@
-export const placeRivalShipsRandomly = (board, shipTypesConfig) => {
-  shipTypesConfig.forEach(shipConfig => {
+import TableroClass from '@/classes/Tablero'; 
+import { SHIP_TYPES_CONFIG } from '@/assets/SHIP_TYPES_CONFIG.JS';
+
+export const placeRivalShipsRandomly = (tablero, shipTypesConfig) => {
+  let currentBoard = tablero; 
+
+  for (const shipConfig of shipTypesConfig) {
     for (let i = 0; i < shipConfig.initialCount; i++) {
       let placed = false;
-      // Se necesita la clase del barco para instanciarlo
-      const ShipClass = shipConfig.ShipClass; 
-      if (!ShipClass) {
-        console.error(`Clase de barco no definida para ${shipConfig.name}`);
-        continue;
-      }
-      const shipInstance = new ShipClass();
-      
-      for (let attempt = 0; attempt < 100 && !placed; attempt++) {
-        const row = Math.floor(Math.random() * board.size);
-        const col = Math.floor(Math.random() * board.size);
+      let attempts = 0;
+      const newShipInstance = new shipConfig.ShipClass(); 
+
+      while (!placed && attempts < 500) { 
+        const row = Math.floor(Math.random() * currentBoard.size);
+        const col = Math.floor(Math.random() * currentBoard.size);
         const orientation = Math.random() < 0.5 ? 'horizontal' : 'vertical';
-        if (board.placeShip(shipInstance, row, col, orientation)) {
+
+        const placeResult = currentBoard.placeShip(newShipInstance, row, col, orientation);
+
+        if (placeResult.success) {
+          currentBoard = placeResult.newTablero; 
           placed = true;
         }
+        attempts++;
       }
       if (!placed) {
-        console.warn(`No se pudo colocar el ${shipConfig.name} del rival en el tablero proporcionado.`);
+        console.warn(`No se pudo colocar el barco ${newShipInstance.name} (intentos: ${attempts}).`);
       }
     }
-  });
+  }
+  return currentBoard; 
 };

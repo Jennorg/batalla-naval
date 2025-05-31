@@ -19,8 +19,6 @@ export const useSocketManager = (eventHandlers) => {
 
   const BACKEND_URL = 'https://backend-batallanaval.onrender.com'
 
-  // La forma correcta de inicializar:
-
   useEffect(() => {
     // Conectar al servidor de Socket.IO
     socketRef.current = io(BACKEND_URL, {

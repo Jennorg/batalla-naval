@@ -1,16 +1,15 @@
 class Pieza {
-    constructor (size) {
-        this.size = size; // Tamaño de la pieza, número de partes que la componen
-        this.hits = 0; // Número de partes de la pieza por golpar
-        this.posicion = []; // Posición de la pieza en el tablero, [{fila, columna}, ...]
-        this.orientacion = null; // 'horizontal' o 'vertical'
-        this.sunk = false; // Indica si la pieza ha sido hundida
-        this.skin = null; // URL de la imagen del skin
+    constructor(id, name, size) {
+        this.id = id;
+        this.name = name;
+        this.size = size;
+        this.hits = 0;
+        this.positions = []; 
     }
 
     hit() {
         this.hits++;
-        if (this.hits >= this.length) {
+        if (this.hits >= this.size) {
             this.sunk = true;
         }
     }

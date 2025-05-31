@@ -1,19 +1,17 @@
-import React, { useState } from "react";
-
-import CeldaComponent from "@/components/Celda/CeldaComponent";
+import React from "react";
 import "./TableroComponent.css";
 
 const TableroComponent = ({
   tablero,
-  onCellClick, // Cambiado de onPlaceShip a un manejador de clic genérico
+  onCellClick,
   onCellMouseEnter,
   onBoardMouseLeave,
   previewCells = [],
   previewInvalidCells = [],
-  isPlayerBoard, // Para saber si es el tablero del jugador (para colocar) o del rival (para atacar)
+  isPlayerBoard,
   gamePhase,
-  selectedShipTypeId, // Para saber si hay un barco seleccionado para colocar
-  disabled, // Para deshabilitar interacciones en el tablero del rival durante la colocación
+  selectedShipTypeId,
+  disabled,
 }) => {
   const handleCellClick = (row, col) => {
     if (disabled) return;
@@ -23,9 +21,13 @@ const TableroComponent = ({
   const getCellClass = (cell, r, c) => {
     let className = 'cell';
     if (cell && cell.isHit) {
-      className += cell.isOccupied ? ' cell-hit' : ' cell-miss';
+      if (cell.isSunkShipPart) {
+        className += ' cell-sunk-ship'; 
+      } else {
+        className += cell.isOccupied ? ' cell-hit' : ' cell-miss';
+      }
     } else if (isPlayerBoard && cell && cell.isOccupied) {
-      className += ' cell-ship'; // Mostrar barcos del jugador
+      className += ' cell-ship'; 
     }
 
     if (previewCells.some(p => p.row === r && p.col === c)) {
@@ -40,7 +42,7 @@ const TableroComponent = ({
   return (
     <div
       className="tablero-grid"
-      onMouseLeave={onBoardMouseLeave} // Evento para cuando el mouse sale del tablero
+      onMouseLeave={onBoardMouseLeave}
     >
       {tablero.grid.map((rowArr, rowIndex) =>
         rowArr.map((cell, colIndex) => (
