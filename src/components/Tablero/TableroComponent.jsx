@@ -44,7 +44,7 @@ const TableroComponent = ({
       className="tablero-grid"
       onMouseLeave={onBoardMouseLeave}
     >
-      {tablero.grid.map((rowArr, rowIndex) =>
+      {tablero && tablero.grid && tablero.grid.map((rowArr, rowIndex) =>
         rowArr.map((cell, colIndex) => (
           <div
             key={`${rowIndex}-${colIndex}`}

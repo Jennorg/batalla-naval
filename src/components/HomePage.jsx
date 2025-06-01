@@ -13,6 +13,9 @@ function HomePage() {
         <Link to="/game/multiplayer"> {/* Nueva ruta para jugar multijugador */}
           <button className="start-game-button mode-multiplayer">Jugar Online</button>
         </Link>
+        <Link to="/game/4-multiplayer"> {/* Nueva ruta para jugar multijugador */}
+          <button className="start-game-button mode-multiplayer">Jugar Online (4)</button>
+        </Link>
       </div>
     </div>
   );

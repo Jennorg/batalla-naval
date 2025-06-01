@@ -13,7 +13,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/game/ai" element={<GameComponent mode="ai" />} />
         <Route path="/game/multiplayer" element={<GameComponent mode="multiplayer" />} />
-        
+        <Route path="/game/4-multiplayer" element={<GameComponent mode="2vs2" />} />
         <Route path="*" element={<h2>404 - Página no encontrada</h2>} />
       </Routes>
     </div>
