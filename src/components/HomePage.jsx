@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import './HomePage.css'; // Asegúrate de tener un archivo CSS para estilos
 
 function HomePage() {
   return (

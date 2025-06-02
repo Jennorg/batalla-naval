@@ -1,21 +1,18 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-
 import TableroComponent from '@/components/Tablero/TableroComponent';
 import PiezaComponent from '@/components/Pieza/PiezaComponent';
 import TableroClass from '@/classes/tablero/Tablero';
 import { placeRivalShipsRandomly } from '@/utils/gameSetup';
-
 import { SHIP_TYPES_CONFIG } from '@/assets/SHIP_TYPES_CONFIG.JS';
 import FASES_JUEGO from '@/assets/FASES_DE_JUEGO.JS';
-
 import { usePlayerInteraction } from '@/hooks/usePlayerInteraction';
 import { useGameSocketEvents } from '@/hooks/useGameSocketEvents';
 
 function GameComponent({ mode }) {
   const [tableroPlayer, setTableroPlayer] = useState(() => new TableroClass());
-  const [tableroRival, setTableroRival] = useState(() => new TableroClass());
-  const [tableroAlly, setTableroAlly] = useState(() => null);
-  const [tableroRival2, setTableroRival2] = useState(() => null);
+  const [tableroOpponent1, setTableroOpponent1] = useState(() => new TableroClass());
+  const [tableroOpponent2, setTableroOpponent2] = useState(() => new TableroClass());
+  const [tableroOpponent3, setTableroOpponent3] = useState(() => new TableroClass());
 
   const initialShipCounts = React.useMemo(() => SHIP_TYPES_CONFIG.reduce((acc, type) => {
     acc[type.id] = type.initialCount;
@@ -24,21 +21,19 @@ function GameComponent({ mode }) {
 
   const [playerShipCounts, setPlayerShipCounts] = useState(initialShipCounts);
   const [placedPlayerShips, setPlacedPlayerShips] = useState([]);
-
   const [selectedShipTypeId, setSelectedShipTypeId] = useState(null);
   const [placementOrientation, setPlacementOrientation] = useState('horizontal');
   const [previewCells, setPreviewCells] = useState([]);
   const [previewInvalidCells, setPreviewInvalidCells] = useState([]);
-
   const [currentPlayerTurn, setCurrentPlayerTurn] = useState(null);
   const [gamePhase, setGamePhase] = useState(FASES_JUEGO.LOBBY);
   const [message, setMessage] = useState('Esperando jugadores en el lobby...');
   const [gameId, setGameId] = useState(null);
-  const [teamId, setTeamId] = useState(null);
   const [playersInGame, setPlayersInGame] = useState([]);
-
-  const [rival1Id, setRival1Id] = useState(null);
-  const [rival2Id, setRival2Id] = useState(null);
+  const [opponent1Id, setOpponent1Id] = useState(null);
+  const [opponent2Id, setOpponent2Id] = useState(null);
+  const [opponent3Id, setOpponent3Id] = useState(null);
+  const [teamId, setTeamId] = useState(null);
 
   const playerId = useRef(null);
 
@@ -50,14 +45,15 @@ function GameComponent({ mode }) {
         setCurrentPlayerTurn,
         setGamePhase,
         setTableroPlayer,
-        setTableroRival,
-        setTableroAlly,
-        setTableroRival2,
+        setTableroOpponent1,
+        setTableroOpponent2,
+        setTableroOpponent3,
         setTeamId,
         setPlayersInGame,
         playerId,
-        setRival1Id,
-        setRival2Id,
+        setOpponent1Id,
+        setOpponent2Id,
+        setOpponent3Id,
       })
     : { sendPlayerAction: () => {}, currentSocketPlayerId: { current: null } };
 
@@ -69,19 +65,18 @@ function GameComponent({ mode }) {
     }
   }, [currentSocketPlayerId, mode]);
 
-
   const resetGame = useCallback(() => {
     const newPlayerBoard = new TableroClass();
-    let newRivalBoard = new TableroClass();
+    let newOpponent1Board = new TableroClass();
 
     if (mode === 'ai') {
-      newRivalBoard = placeRivalShipsRandomly(newRivalBoard, SHIP_TYPES_CONFIG);
+      newOpponent1Board = placeRivalShipsRandomly(newOpponent1Board, SHIP_TYPES_CONFIG);
     }
 
     setTableroPlayer(newPlayerBoard);
-    setTableroRival(newRivalBoard);
-    setTableroAlly(null);
-    setTableroRival2(null);
+    setTableroOpponent1(newOpponent1Board); 
+    setTableroOpponent2(mode === '2vs2' ? new TableroClass() : null);
+    setTableroOpponent3(mode === '2vs2' ? new TableroClass() : null);
 
     setPlayerShipCounts(initialShipCounts);
     setPlacedPlayerShips([]);
@@ -94,10 +89,11 @@ function GameComponent({ mode }) {
     setGamePhase(FASES_JUEGO.LOBBY);
     setMessage('Esperando jugadores en el lobby...');
     setGameId(null);
-    setTeamId(null);
+    setTeamId(null); 
     setPlayersInGame([]);
-    setRival1Id(null);
-    setRival2Id(null);
+    setOpponent1Id(null);
+    setOpponent2Id(null);
+    setOpponent3Id(null);
   }, [initialShipCounts, mode]);
 
   useEffect(() => {
@@ -117,7 +113,6 @@ function GameComponent({ mode }) {
     }
   }, [gamePhase, mode]);
 
-
   const handleRivalTurnIA = useCallback(() => {
     if (mode !== 'ai' || gamePhase !== FASES_JUEGO.BATALLA) return;
 
@@ -131,12 +126,9 @@ function GameComponent({ mode }) {
 
         if (!currentTableroPlayerState.grid[r][c].isHit) {
             const attackResult = currentTableroPlayerState.attackCell(r, c);
-
             currentTableroPlayerState = attackResult.newTablero;
-
             setMessage(`Rival (IA) ataca [${r},${c}]: ${attackResult.message}`);
             attacked = true;
-
             if (currentTableroPlayerState.areAllShipsSunk()) {
                 setMessage('¡La IA ha ganado la batalla!');
                 setGamePhase(FASES_JUEGO.FINALIZADO);
@@ -147,17 +139,13 @@ function GameComponent({ mode }) {
             break;
         }
     }
-
     setTableroPlayer(currentTableroPlayerState);
-
     if (!attacked) setMessage('IA no pudo encontrar celda para atacar.');
-
     setCurrentPlayerTurn(playerId.current);
     if (gamePhase === FASES_JUEGO.BATALLA) {
       setMessage(prev => prev + ' Es tu turno.');
     }
   }, [mode, gamePhase, tableroPlayer, setTableroPlayer, setMessage, setCurrentPlayerTurn, setGamePhase, playerId]);
-
 
   const handleStartBattle = useCallback(() => {
     if (gamePhase === FASES_JUEGO.LOBBY) {
@@ -170,7 +158,7 @@ function GameComponent({ mode }) {
         sendPlayerAction({
           type: 'PLAYER_READY_LOBBY',
           gameId: gameId,
-          mode: mode
+          mode: mode 
         });
       } else if (mode === 'ai') {
         setGamePhase(FASES_JUEGO.COLOCACION);
@@ -206,28 +194,27 @@ function GameComponent({ mode }) {
     }
   }, [placedPlayerShips, gamePhase, mode, sendPlayerAction, gameId, playerId, tableroPlayer, setMessage, setCurrentPlayerTurn]);
 
-
   const {
     handleSelectShipType,
     handleShipOrientationChange,
     handleCellMouseEnter,
     handleBoardMouseLeave,
     handlePlayerBoardClick,
-    handleRivalBoardClick,
-    handleAllyBoardClick,
-    handleRival2BoardClick,
+    handleOpponent1BoardClick,
+    handleOpponent2BoardClick,
+    handleOpponent3BoardClick,
   } = usePlayerInteraction({
     mode,
     gamePhase,
     currentPlayerTurn,
     tableroPlayer,
     setTableroPlayer,
-    tableroRival,
-    setTableroRival,
-    tableroAlly,
-    setTableroAlly,
-    tableroRival2,
-    setTableroRival2,
+    tableroOpponent1,
+    setTableroOpponent1,
+    tableroOpponent2, 
+    setTableroOpponent2,
+    tableroOpponent3,
+    setTableroOpponent3,
     playerShipCounts,
     setPlayerShipCounts,
     placedPlayerShips,
@@ -247,27 +234,24 @@ function GameComponent({ mode }) {
     setGamePhase,
     teamId,
     playersInGame,
-    rival1Id,
-    rival2Id,
+    opponent1Id,
+    opponent2Id,
+    opponent3Id,
   });
-
 
   return (
     <div className="gameContainer">
       <h1>Batalla Naval
         {mode === 'ai' && '(vs IA)'}
         {mode === 'multiplayer' && '(Online 1vs1)'}
-        {mode === '2vs2' && '(Online 2vs2)'}
+        {mode === '2vs2' && '(Online 4 Jugadores FFA)'} 
       </h1>
       <p className="game-message">{message}</p>
       {(mode === 'multiplayer' || mode === '2vs2') && gameId && <p className="game-id-label">ID de Partida: {gameId?.substring(0,10)}...</p>}
-      {(mode === '2vs2') && teamId && <p className="team-id-label">Tu Equipo: {teamId}</p>}
-
-      {mode === 'multiplayer' && rival1Id && <p className="opponent-id-label">Tu oponente es: {rival1Id?.substring(0,6)}...</p>}
-      {mode === '2vs2' && rival1Id && rival2Id && (
-        <p className="opponent-id-label">Rivales: {rival1Id?.substring(0,6)}..., {rival2Id?.substring(0,6)}...</p>
+      {mode === 'multiplayer' && opponent1Id && <p className="opponent-id-label">Oponente: {opponent1Id?.substring(0,6)}...</p>}
+      {mode === '2vs2' && opponent1Id && opponent2Id && opponent3Id && (
+        <p className="opponent-id-label">Oponentes: {opponent1Id?.substring(0,6)}..., {opponent2Id?.substring(0,6)}..., {opponent3Id?.substring(0,6)}...</p>
       )}
-
 
       {(gamePhase === FASES_JUEGO.BATALLA || gamePhase === FASES_JUEGO.FINALIZADO) && currentPlayerTurn && (
         <p className="turno-label">
@@ -275,7 +259,8 @@ function GameComponent({ mode }) {
         </p>
       )}
 
-      <div className="game-boards-container">
+      {/* Apply the conditional class here */}
+      <div className={`game-boards-container ${mode === '2vs2' ? 'mode-2vs2' : 'mode-1v1-ai'}`}>
         <div className="tablero-area-jugador">
           <h2>Tu Flota ({gamePhase === FASES_JUEGO.COLOCACION ? "Colocando" : "Defendiendo"})</h2>
           <TableroComponent
@@ -335,10 +320,10 @@ function GameComponent({ mode }) {
         )}
 
         <div className="tablero-area-rival">
-          <h2>Flota Rival ({mode === 'ai' ? 'IA' : (gamePhase === FASES_JUEGO.BATALLA && currentPlayerTurn === playerId.current ? "Atacando" : "Esperando...")})</h2>
+          <h2>Flota Oponente 1 ({mode === 'ai' ? 'IA' : (gamePhase === FASES_JUEGO.BATALLA && currentPlayerTurn === playerId.current ? "Atacando" : "Esperando...")})</h2>
           <TableroComponent
-            tablero={tableroRival}
-            onCellClick={handleRivalBoardClick}
+            tablero={tableroOpponent1}
+            onCellClick={handleOpponent1BoardClick}
             isPlayerBoard={false}
             gamePhase={gamePhase}
             disabled={!(gamePhase === FASES_JUEGO.BATALLA && currentPlayerTurn === playerId.current)}
@@ -347,21 +332,21 @@ function GameComponent({ mode }) {
 
         {mode === '2vs2' && (
           <>
-            <div className="tablero-area-aliado">
-              <h2>Flota Aliada ({gamePhase === FASES_JUEGO.BATALLA ? "Defendiendo" : "Esperando..."})</h2>
+            <div className="tablero-area-opponent2">
+              <h2>Flota Oponente 2 ({gamePhase === FASES_JUEGO.BATALLA && currentPlayerTurn === playerId.current ? "Atacando" : "Esperando..."})</h2>
               <TableroComponent
-                tablero={tableroAlly}
-                onCellClick={handleAllyBoardClick}
+                tablero={tableroOpponent2}
+                onCellClick={handleOpponent2BoardClick}
                 isPlayerBoard={false}
                 gamePhase={gamePhase}
-                disabled={true}
+                disabled={!(gamePhase === FASES_JUEGO.BATALLA && currentPlayerTurn === playerId.current)} 
               />
             </div>
-            <div className="tablero-area-rival2">
-              <h2>Segundo Rival ({gamePhase === FASES_JUEGO.BATALLA && currentPlayerTurn === playerId.current ? "Atacando" : "Esperando..."})</h2>
+            <div className="tablero-area-opponent3">
+              <h2>Flota Oponente 3 ({gamePhase === FASES_JUEGO.BATALLA && currentPlayerTurn === playerId.current ? "Atacando" : "Esperando..."})</h2>
               <TableroComponent
-                tablero={tableroRival2}
-                onCellClick={handleRival2BoardClick}
+                tablero={tableroOpponent3}
+                onCellClick={handleOpponent3BoardClick}
                 isPlayerBoard={false}
                 gamePhase={gamePhase}
                 disabled={!(gamePhase === FASES_JUEGO.BATALLA && currentPlayerTurn === playerId.current)}
@@ -371,9 +356,10 @@ function GameComponent({ mode }) {
         )}
       </div>
 
-      {(gamePhase === FASES_JUEGO.FINALIZADO || (mode === 'ai' && gamePhase === FASES_DE_JUEGO.BATALLA) ) && (
-        <button onClick={resetGame} className="btn-reset">
-          {gamePhase === FASES_JUEGO.FINALIZADO ? 'Jugar de Nuevo' : 'Reiniciar Juego (vs IA)'}
+      {(gamePhase === FASES_JUEGO.FINALIZADO || (mode === 'ai' && gamePhase === FASES_JUEGO.BATALLA && tableroPlayer.areAllShipsSunk() === false ) ) && (
+         <button onClick={resetGame} className="btn-reset">
+          {gamePhase === FASES_JUEGO.FINALIZADO ? 'Jugar de Nuevo' : 
+            (mode === 'ai' && tableroPlayer.areAllShipsSunk() === false ? 'Reiniciar Juego (vs IA)' : 'Jugar de Nuevo')}
         </button>
       )}
     </div>

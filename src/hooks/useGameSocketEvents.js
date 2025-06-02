@@ -3,45 +3,43 @@ import io from 'socket.io-client';
 import FASES_JUEGO from '@/assets/FASES_DE_JUEGO.JS';
 import Tablero from '@/classes/tablero/Tablero';
 
-// const SOCKET_SERVER_URL = 'https://backend-batallanaval.onrender.com';
-const SOCKET_SERVER_URL = 'http://localhost:3000';
+const SOCKET_SERVER_URL = 'https://backend-batallanaval.onrender.com'
+// const SOCKET_SERVER_URL = 'http://localhost:3000';
 
 export const useGameSocketEvents = ({
   mode,
   setMessage,
   setGameId,
-  setCurrentPlayerTurn, // Esto debe recibir un PlayerId real, no 'player'/'rival'
+  setCurrentPlayerTurn,
   setGamePhase,
   setTableroPlayer,
-  setTableroRival,
-  setTableroAlly,
-  setTableroRival2,
+  setTableroOpponent1,
+  setTableroOpponent2,
+  setTableroOpponent3,
   setTeamId,
   setPlayersInGame,
-  playerId, // Este es el ref que contiene tu ID de jugador real
-  setRival1Id,
-  setRival2Id,
+  playerId,
+  setOpponent1Id,
+  setOpponent2Id,
+  setOpponent3Id,
 }) => {
   const socketRef = useRef(null);
-  const allyIdRef = useRef(null);
-  const internalRival1IdRef = useRef(null); 
-  const internalRival2IdRef = useRef(null); 
+  const internalOpponent1IdRef = useRef(null); 
+  const internalOpponent2IdRef = useRef(null); 
+  const internalOpponent3IdRef = useRef(null); 
 
   const sendPlayerAction = useCallback((actionData) => {
     if (socketRef.current && socketRef.current.connected) {
-      console.log('DEBUG: [Frontend -> Server] Enviando acción:', actionData.type, actionData);
-
       if (actionData.type === 'ATTACK') {
         if (mode === 'multiplayer') {
-          if (!internalRival1IdRef.current) {
-            console.error('ERROR: No se encontró el ID del oponente para el ataque en 1vs1.');
+          if (!internalOpponent1IdRef.current) {
             setMessage('Error: No se puede atacar, ID del oponente desconocido.');
             return;
           }
-          actionData.targetPlayerId = internalRival1IdRef.current;
+          actionData.targetPlayerId = internalOpponent1IdRef.current;
         } else if (mode === '2vs2') {
-          if (!actionData.targetPlayerId || (actionData.targetPlayerId !== internalRival1IdRef.current && actionData.targetPlayerId !== internalRival2IdRef.current)) {
-              console.error('ERROR: En 2vs2, la acción de ataque debe especificar un targetPlayerId válido (rival1 o rival2).');
+          const validTargets = [internalOpponent1IdRef.current, internalOpponent2IdRef.current, internalOpponent3IdRef.current].filter(Boolean);
+          if (!actionData.targetPlayerId || !validTargets.includes(actionData.targetPlayerId)) {
               setMessage('Error: Debes seleccionar un tablero rival para atacar.');
               return;
           }
@@ -55,7 +53,6 @@ export const useGameSocketEvents = ({
         mode: mode
       });
     } else {
-      console.warn('ADVERTENCIA: Socket no conectado, no se pudo enviar la acción:', actionData);
       setMessage('Error de conexión: No se pudo enviar la acción.');
     }
   }, [setMessage, playerId, mode]);
@@ -79,8 +76,6 @@ export const useGameSocketEvents = ({
 
   const handleActionReceived = useCallback((data) => {
     const { action } = data;
-    console.log('DEBUG: [Server -> Frontend] Acción recibida:', action.type, action);
-    console.log('DEBUG: [Server -> Frontend] Mi ID actual:', playerId.current);
 
     switch (action.type) {
       case 'ATTACK_RECEIVED': {
@@ -100,21 +95,22 @@ export const useGameSocketEvents = ({
             setGamePhase(FASES_JUEGO.FINALIZADO);
           }
         } else {
-            console.warn('ADVERTENCIA: ATTACK_RECEIVED no contiene newTableroPlayer. No se pudo actualizar el tablero del jugador.');
         }
         break;
       }
       case 'ATTACK_RESULT': {
         const { targetPlayerId, newTableroTarget, sunkShip } = action;
 
-        if (targetPlayerId === internalRival1IdRef.current) { 
-            setTableroRival(reconstructBoard(newTableroTarget));
-            setMessage(`Tu ataque a RIVAL 1 (${targetPlayerId?.substring(0,6)}...) en [${action.coordinates.row},${action.coordinates.col}]: ${action.message}`);
-        } else if (mode === '2vs2' && targetPlayerId === internalRival2IdRef.current) { 
-            setTableroRival2(reconstructBoard(newTableroTarget));
-            setMessage(`Tu ataque a RIVAL 2 (${targetPlayerId?.substring(0,6)}...) en [${action.coordinates.row},${action.coordinates.col}]: ${action.message}`);
+        if (targetPlayerId === internalOpponent1IdRef.current) { 
+            setTableroOpponent1(reconstructBoard(newTableroTarget));
+            setMessage(`Tu ataque a Oponente 1 (${targetPlayerId?.substring(0,6)}...) en [${action.coordinates.row},${action.coordinates.col}]: ${action.message}`);
+        } else if (targetPlayerId === internalOpponent2IdRef.current) { 
+            setTableroOpponent2(reconstructBoard(newTableroTarget));
+            setMessage(`Tu ataque a Oponente 2 (${targetPlayerId?.substring(0,6)}...) en [${action.coordinates.row},${action.coordinates.col}]: ${action.message}`);
+        } else if (targetPlayerId === internalOpponent3IdRef.current) {
+            setTableroOpponent3(reconstructBoard(newTableroTarget));
+            setMessage(`Tu ataque a Oponente 3 (${targetPlayerId?.substring(0,6)}...) en [${action.coordinates.row},${action.coordinates.col}]: ${action.message}`);
         } else {
-            console.warn('ADVERTENCIA: ATTACK_RESULT con targetPlayerId desconocido o no aplicable al modo:', targetPlayerId);
         }
 
         if (sunkShip) {
@@ -124,30 +120,53 @@ export const useGameSocketEvents = ({
       }
       case 'TURN_CHANGE': {
         const { nextPlayerId, message: turnMessage } = action;
-        console.log(`DEBUG: [Server -> Frontend] TURN_CHANGE. Siguiente turno (ID real): ${nextPlayerId}. Mi ID: ${playerId.current}`);
         
-        // ¡CORRECCIÓN CLAVE AQUÍ!
-        setCurrentPlayerTurn(nextPlayerId); // Establece el ID real del jugador del turno
+        setCurrentPlayerTurn(nextPlayerId);
         setMessage(turnMessage || (nextPlayerId === playerId.current ? '¡Es tu turno!' : 'Es el turno del oponente.'));
         break;
       }
       case 'GAME_STATE_UPDATE': {
-        const { myBoard, opponentBoard, allyBoard, secondOpponentBoard, message: stateMessage, playersInfo, currentPlayerTurn: serverCurrentPlayerTurn } = action;
-        console.log(`DEBUG: [Server -> Frontend] GAME_STATE_UPDATE recibido. Turno del servidor: ${serverCurrentPlayerTurn}`);
+        const { myBoard, opponentBoards, message: stateMessage, playersInfo, currentPlayerTurn: serverCurrentPlayerTurn } = action;
         
         if (myBoard) setTableroPlayer(reconstructBoard(myBoard));
-        if (opponentBoard) setTableroRival(reconstructBoard(opponentBoard));
         
-        if (mode === '2vs2') {
-            if (allyBoard) setTableroAlly(reconstructBoard(allyBoard));
-            if (secondOpponentBoard) setTableroRival2(reconstructBoard(secondOpponentBoard));
-            if (playersInfo) setPlayersInGame(playersInfo);
+        const currentOpponentsIds = playersInfo
+            .filter(p => p.id !== playerId.current && p.isActive && !p.allMyShipsSunk)
+            .map(p => p.id);
+
+        internalOpponent1IdRef.current = null;
+        internalOpponent2IdRef.current = null;
+        internalOpponent3IdRef.current = null;
+        setOpponent1Id(null);
+        setOpponent2Id(null);
+        setOpponent3Id(null);
+
+        if (currentOpponentsIds[0]) {
+            internalOpponent1IdRef.current = currentOpponentsIds[0];
+            setOpponent1Id(currentOpponentsIds[0]);
+            setTableroOpponent1(reconstructBoard(opponentBoards[currentOpponentsIds[0]]));
+        } else {
+             setTableroOpponent1(new Tablero());
         }
+        if (currentOpponentsIds[1]) {
+            internalOpponent2IdRef.current = currentOpponentsIds[1];
+            setOpponent2Id(currentOpponentsIds[1]);
+            setTableroOpponent2(reconstructBoard(opponentBoards[currentOpponentsIds[1]]));
+        } else {
+             setTableroOpponent2(new Tablero());
+        }
+        if (currentOpponentsIds[2]) {
+            internalOpponent3IdRef.current = currentOpponentsIds[2];
+            setOpponent3Id(currentOpponentsIds[2]);
+            setTableroOpponent3(reconstructBoard(opponentBoards[currentOpponentsIds[2]]));
+        } else {
+             setTableroOpponent3(new Tablero());
+        }
+
+        if (playersInfo) setPlayersInGame(playersInfo);
         
-        // ¡CORRECCIÓN CLAVE AQUÍ! Asegúrate de actualizar el turno también con el GAME_STATE_UPDATE
         if (serverCurrentPlayerTurn) {
             setCurrentPlayerTurn(serverCurrentPlayerTurn);
-            console.log(`DEBUG: [Server -> Frontend] setCurrentPlayerTurn con GAME_STATE_UPDATE a: ${serverCurrentPlayerTurn}`);
         }
         setMessage(stateMessage || 'Estado del juego actualizado.');
         break;
@@ -164,19 +183,14 @@ export const useGameSocketEvents = ({
 
           if (mode === '2vs2') {
               if (winnerTeamId && clientTeamId === winnerTeamId) { 
-                  console.log('¡Tu equipo ha ganado la batalla!');
               } else {
-                  console.log('¡Tu equipo ha perdido la batalla!');
               }
           } else {
               if (winnerPlayerId === playerId.current) {
-                  console.log('¡Has ganado la batalla!');
               } else {
-                  console.log('¡Has perdido la batalla!');
                   setMessage(winnerPlayerId ? `Has perdido. ¡${winnerPlayerId?.substring(0,6)}... ha ganado!` : message);
               }
           }
-          // Asegurarse de que el turno se borra al finalizar
           setCurrentPlayerTurn(null); 
           break;
       }
@@ -184,7 +198,6 @@ export const useGameSocketEvents = ({
           const { opponentId, message } = action;
           setMessage(message || `Un oponente ha abandonado la partida.`);
           setGamePhase(FASES_JUEGO.FINALIZADO);
-          // Asegurarse de que el turno se borra al abandonar
           setCurrentPlayerTurn(null); 
           break;
       }
@@ -198,40 +211,32 @@ export const useGameSocketEvents = ({
         break;
       }
       default:
-        console.warn('ADVERTENCIA: Acción desconocida recibida del servidor:', action.type, action);
     }
-  }, [mode, setTableroPlayer, setTableroRival, setTableroAlly, setTableroRival2, setMessage, setGamePhase, setCurrentPlayerTurn, playerId, setTeamId, setPlayersInGame, reconstructBoard]);
+  }, [mode, setTableroPlayer, setTableroOpponent1, setTableroOpponent2, setTableroOpponent3, setMessage, setGamePhase, setCurrentPlayerTurn, playerId, setTeamId, setPlayersInGame, reconstructBoard, setOpponent1Id, setOpponent2Id, setOpponent3Id]);
 
   useEffect(() => {
     if (mode !== 'multiplayer' && mode !== '2vs2') {
       if (socketRef.current) {
-        console.log('DEBUG: Desconectando socket (modo no multijugador/2vs2).');
         socketRef.current.disconnect();
         socketRef.current = null;
       }
       return;
     }
 
-    // Prevención de reconexión si ya está conectado y en el mismo modo
     if (socketRef.current && socketRef.current.connected && socketRef.current._hasRequestedGameMode === mode) {
-        console.log(`DEBUG: Socket ya conectado y modo de juego '${mode}' solicitado. No intentando reconectar.`);
         return;
     }
 
-    // Desconectar socket existente si cambia el modo o no está conectado
-    if (socketRef.current) { // Si existe un socket, desconéctalo antes de crear uno nuevo
-        console.log(`DEBUG: Desconectando socket existente (previo al cambio de modo o reconexión).`);
+    if (socketRef.current) {
         socketRef.current.disconnect();
-        socketRef.current = null; // Asegurarse de limpiar la referencia
+        socketRef.current = null;
     }
     
-    console.log('DEBUG: Iniciando nueva conexión Socket.IO a:', SOCKET_SERVER_URL);
     socketRef.current = io(SOCKET_SERVER_URL);
 
     socketRef.current.on('connect', () => {
       playerId.current = socketRef.current.id;
       setMessage('Conectado al servidor. Buscando partida...');
-      console.log('DEBUG: [Socket] Conectado. Mi Socket ID/Player ID:', playerId.current);
 
       let gameModeNumber;
       if (mode === 'multiplayer') {
@@ -239,65 +244,55 @@ export const useGameSocketEvents = ({
       } else if (mode === '2vs2') {
         gameModeNumber = 4;
       } else {
-        console.error('ERROR: Modo de juego desconocido. No se puede enviar requestGameMode.');
         setMessage('Error: Modo de juego no configurado correctamente.');
         socketRef.current.disconnect();
         return;
       }
       socketRef.current.emit('requestGameMode', gameModeNumber);
-      socketRef.current._hasRequestedGameMode = mode; // Marcar el modo solicitado
+      socketRef.current._hasRequestedGameMode = mode;
     });
 
     socketRef.current.on('gameFound', (data) => {
       setGameId(data.gameId);
       setGamePhase(FASES_JUEGO.COLOCACION);
-      setCurrentPlayerTurn(null); // Al encontrar la partida, nadie tiene el turno aún (fase de colocación)
+      setCurrentPlayerTurn(null);
 
-      console.log(`DEBUG: [Socket] gameFound. Game ID: ${data.gameId}.`);
-      console.log('DEBUG: Datos de la partida:', data);
-
-      // Resetear las refs internas y los estados de los IDs al encontrar una nueva partida
-      allyIdRef.current = null;
-      internalRival1IdRef.current = null;
-      internalRival2IdRef.current = null;
-      setRival1Id(null); 
-      setRival2Id(null); 
+      internalOpponent1IdRef.current = null;
+      internalOpponent2IdRef.current = null;
+      internalOpponent3IdRef.current = null;
+      setOpponent1Id(null); 
+      setOpponent2Id(null); 
+      setOpponent3Id(null);
 
       if (mode === 'multiplayer') {
-          internalRival1IdRef.current = data.opponentId; // Actualiza la ref interna
-          setRival1Id(data.opponentId); // Actualiza el estado para GameComponent
+          internalOpponent1IdRef.current = data.opponentId;
+          setOpponent1Id(data.opponentId);
           setMessage(`Partida 1vs1 ${data.gameId?.substring(0,10)}... encontrada. Tu oponente es: ${data.opponentId?.substring(0,6)}... ¡Coloca tus barcos!`);
       } else if (mode === '2vs2') {
           setTeamId(data.teamId); 
           
           if (data.playersInGame && Array.isArray(data.playersInGame)) {
               setPlayersInGame(data.playersInGame);
-              let tempRival1 = null;
-              let tempRival2 = null;
-
+              const opponents = [];
               data.playersInGame.forEach(player => {
-                  if (player.id !== playerId.current) { // Si no es el jugador actual
-                      if (player.teamId === data.teamId) { // Es un aliado
-                          allyIdRef.current = player.id;
-                      } else { // Es un oponente
-                          if (!tempRival1) {
-                              tempRival1 = player.id;
-                          } else {
-                              tempRival2 = player.id;
-                          }
-                      }
+                  if (player.id !== playerId.current) {
+                       opponents.push(player.id);
                   }
               });
-              internalRival1IdRef.current = tempRival1;
-              internalRival2IdRef.current = tempRival2;
-              setRival1Id(tempRival1); 
-              setRival2Id(tempRival2);
+              
+              internalOpponent1IdRef.current = opponents[0] || null;
+              internalOpponent2IdRef.current = opponents[1] || null;
+              internalOpponent3IdRef.current = opponents[2] || null;
+
+              setOpponent1Id(opponents[0] || null); 
+              setOpponent2Id(opponents[1] || null);
+              setOpponent3Id(opponents[2] || null);
+              
           } else {
-              console.warn('ADVERTENCIA: gameFound (2vs2) no contiene playersInGame o no es un array válido.', data);
               setMessage('Error al obtener la información de los jugadores de la partida.');
           }
 
-          setMessage(`Partida 2vs2 ${data.gameId?.substring(0,10)}... encontrada. Estás en el equipo: ${data.teamId}. ¡Coloca tus barcos!`);
+          setMessage(`Partida 2vs2 ${data.gameId?.substring(0,10)}... encontrada. ¡Coloca tus barcos!`);
       }
     });
 
@@ -305,39 +300,35 @@ export const useGameSocketEvents = ({
 
     socketRef.current.on('gameStarted', (data) => {
       setGamePhase(FASES_JUEGO.BATALLA);
-      // ¡CORRECCIÓN CLAVE AQUÍ!
-      setCurrentPlayerTurn(data.startingPlayerId); // Establece el ID real del jugador que inicia
+      setCurrentPlayerTurn(data.startingPlayerId);
       const playerIsStarting = (data.startingPlayerId === playerId.current);
       setMessage(`¡Batalla iniciada! ${playerIsStarting ? '¡Es tu turno!' : 'Es el turno del oponente.'}`);
-      console.log(`DEBUG: [Socket] gameStarted. Jugador inicial: ${data.startingPlayerId}. Soy yo: ${playerIsStarting}. Fase: ${FASES_JUEGO.BATALLA}. Turno establecido a: ${data.startingPlayerId}`);
     });
 
     socketRef.current.on('disconnect', (reason) => {
-      console.log('DEBUG: [Socket] Desconectado del servidor. Razón:', reason);
       setMessage('Desconectado del servidor.');
       setGameId(null);
-      setCurrentPlayerTurn(null); // Limpiar el turno al desconectar
+      setCurrentPlayerTurn(null);
       setGamePhase(FASES_JUEGO.COLOCACION);
-      allyIdRef.current = null;
-      internalRival1IdRef.current = null;
-      internalRival2IdRef.current = null;
-      setRival1Id(null); 
-      setRival2Id(null); 
+      internalOpponent1IdRef.current = null;
+      internalOpponent2IdRef.current = null;
+      internalOpponent3IdRef.current = null;
+      setOpponent1Id(null); 
+      setOpponent2Id(null); 
+      setOpponent3Id(null); 
       setPlayersInGame([]);
       setTeamId(null);
       if (socketRef.current) {
-          socketRef.current._hasRequestedGameMode = null; // Restablecer para permitir nueva conexión
+          socketRef.current._hasRequestedGameMode = null;
       }
     });
 
     socketRef.current.on('error', (error) => {
-      console.error('ERROR: [Socket] Error del socket:', error);
       setMessage(`Error del servidor: ${error.message || 'Desconocido'}`);
     });
 
     return () => {
       if (socketRef.current) {
-        console.log('DEBUG: Limpiando y desconectando socket en cleanup de useEffect.');
         socketRef.current.off('connect');
         socketRef.current.off('gameFound');
         socketRef.current.off('playerAction');
@@ -346,9 +337,9 @@ export const useGameSocketEvents = ({
         socketRef.current.off('error');
         socketRef.current.disconnect();
         socketRef.current = null;
-        allyIdRef.current = null;
-        internalRival1IdRef.current = null;
-        internalRival2IdRef.current = null;
+        internalOpponent1IdRef.current = null;
+        internalOpponent2IdRef.current = null;
+        internalOpponent3IdRef.current = null;
       }
     };
   }, [
@@ -356,17 +347,24 @@ export const useGameSocketEvents = ({
     setGameId,
     setMessage,
     setGamePhase,
-    setCurrentPlayerTurn, // Dependencia crucial
+    setCurrentPlayerTurn,
     handleActionReceived,
     playerId,
-    setTableroRival,
-    setTableroAlly,
-    setTableroRival2,
+    setTableroOpponent1,
+    setTableroOpponent2,
+    setTableroOpponent3,
     setTeamId,
     setPlayersInGame,
-    setRival1Id,
-    setRival2Id,
+    setOpponent1Id,
+    setOpponent2Id,
+    setOpponent3Id,
   ]);
 
-  return { sendPlayerAction, currentSocketPlayerId: playerId, rival1Id: internalRival1IdRef.current, rival2Id: internalRival2IdRef.current };
+  return { 
+    sendPlayerAction, 
+    currentSocketPlayerId: playerId, 
+    opponent1Id: internalOpponent1IdRef.current,
+    opponent2Id: internalOpponent2IdRef.current,
+    opponent3Id: internalOpponent3IdRef.current
+  };
 };

@@ -1,8 +1,8 @@
 import Pieza from "./Pieza"
 
 class Acorazado extends Pieza {
-    constructor() {
-        super(4, "Acorazado", 4);
+    constructor(id = null, hits = 0, orientation = null, positions = [], ownerId = null) {
+        super(id, "Acorazado", 4, hits, orientation, positions, ownerId);
     }
 
     isSunk() {

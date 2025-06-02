@@ -1,0 +1,143 @@
+
+/* Estilos generales del contenedor de la página de inicio */
+.home-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centra verticalmente el contenido */
+  align-items: center; /* Centra horizontalmente el contenido */
+  min-height: 100vh; /* Ocupa al menos toda la altura del viewport */
+  background-color: var(--primary-dark-bd); /* Fondo oscuro general */
+  color: var(--text-light); /* Color de texto predeterminado */
+  text-align: center; /* Centra el texto */
+  padding: 20px;
+  box-sizing: border-box; /* Incluye padding en el ancho/alto total */
+  width: 100dvw;
+  height: 100dvh;
+}
+
+/* Título principal */
+.home-page h1 {
+  font-size: 3.5em;
+  color: var(--accent-blue);
+  text-shadow: 0 0 15px rgba(0, 123, 255, 0.6);
+  margin-bottom: 25px;
+  letter-spacing: 2px;
+  animation: fadeInDown 1s ease-out; /* Animación de entrada */
+}
+
+/* Párrafo de descripción */
+.home-page p {
+  font-size: 1.5em;
+  color: var(--text-secondary);
+  margin-bottom: 40px;
+  animation: fadeIn 1.5s ease-out; /* Animación de entrada */
+}
+
+/* Contenedor de los botones de selección de modo */
+.game-mode-selection {
+  display: flex;
+  flex-wrap: wrap; /* Permite que los botones se envuelvan en pantallas pequeñas */
+  justify-content: center;
+  gap: 30px; /* Espacio entre los botones */
+  max-width: 900px; /* Limita el ancho del contenedor de botones */
+  width: 100%;
+}
+
+/* Estilo base para todos los botones de inicio de juego */
+.start-game-button {
+  padding: 18px 35px;
+  font-size: 1.4em;
+  font-weight: 700;
+  border-radius: var(--border-radius-main);
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
+  box-shadow: var(--box-shadow-medium);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: white; /* Color de texto para los botones */
+  min-width: 220px; /* Ancho mínimo para los botones */
+}
+
+/* Estilos específicos para cada modo de juego */
+.start-game-button.mode-ai {
+  background-color: var(--accent-green); /* Verde para jugar contra IA */
+}
+
+.start-game-button.mode-ai:hover {
+  background-color: #218838; /* Tono más oscuro al pasar el ratón */
+  transform: translateY(-5px); /* Efecto flotante */
+  box-shadow: 0 8px 20px rgba(40, 167, 69, 0.5);
+}
+
+.start-game-button.mode-multiplayer {
+  background-color: var(--accent-blue); /* Azul para multijugador */
+}
+
+.start-game-button.mode-multiplayer:hover {
+  background-color: #0056b3; /* Tono más oscuro al pasar el ratón */
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 123, 255, 0.5);
+}
+
+/* Animaciones */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Media Queries para responsividad */
+
+/* Tabletas y móviles */
+@media (max-width: 768px) {
+  .home-page h1 {
+    font-size: 2.5em; /* Tamaño de fuente más pequeño para el título */
+    margin-bottom: 20px;
+  }
+
+  .home-page p {
+    font-size: 1.2em; /* Tamaño de fuente más pequeño para el párrafo */
+    margin-bottom: 30px;
+  }
+
+  .game-mode-selection {
+    flex-direction: column; /* Apila los botones en columnas en pantallas pequeñas */
+    gap: 20px; /* Espacio reducido entre botones apilados */
+  }
+
+  .start-game-button {
+    width: 100%; /* Los botones ocupan todo el ancho disponible */
+    max-width: 300px; /* Limita el ancho máximo para evitar que sean demasiado grandes */
+    font-size: 1.2em; /* Tamaño de fuente más pequeño para los botones */
+    padding: 15px 25px;
+  }
+}
+
+/* Móviles muy pequeños */
+@media (max-width: 480px) {
+  .home-page h1 {
+    font-size: 2em;
+  }
+  .home-page p {
+    font-size: 1em;
+  }
+  .start-game-button {
+    font-size: 1.1em;
+    padding: 12px 20px;
+  }
+}
