@@ -9,8 +9,8 @@
   border: 2.5px solid #2b3a55;
   padding: 12px;
   position: relative;
-  width: 100%; /* Asegura que el tablero ocupe el 100% del ancho de su contenedor */
-  aspect-ratio: 1/1; /* Mantiene el tablero cuadrado basándose en su ancho */
+  width: 100%;
+  aspect-ratio: 1/1;
   min-width: fit-content;
 }
 

@@ -3,9 +3,8 @@ import { io } from 'socket.io-client';
 
 export const useSocketManager = (eventHandlers) => {
   const socketRef = useRef(null);
-  const playerIdRef = useRef(null); // Para almacenar el ID asignado por el servidor
+  const playerIdRef = useRef(null);
 
-  // Desestructura los manejadores de eventos pasados como argumento
   const {
     onConnectionSuccess,
     onStatusUpdate,
@@ -20,13 +19,12 @@ export const useSocketManager = (eventHandlers) => {
   const BACKEND_URL = 'https://backend-batallanaval.onrender.com'
 
   useEffect(() => {
-    // Conectar al servidor de Socket.IO
     socketRef.current = io(BACKEND_URL, {
-        reconnectionAttempts: 5, // Intentar reconectar algunas veces
-        reconnectionDelay: 3000, // Esperar 3 segundos entre intentos
+        reconnectionAttempts: 5,
+        reconnectionDelay: 3000,
     });
 
-    const currentSocket = socketRef.current; // Captura la referencia actual para usar en el cleanup
+    const currentSocket = socketRef.current;
 
     const handleConnect = () => console.log('Socket conectado:', currentSocket.id);
     const handleDisconnect = (reason) => console.log('Socket desconectado:', reason);
@@ -36,10 +34,9 @@ export const useSocketManager = (eventHandlers) => {
     currentSocket.on('disconnect', handleDisconnect);
     currentSocket.on('connect_error', handleConnectError);
 
-    // Registrar listeners para eventos personalizados
     if (onConnectionSuccess) {
       currentSocket.on('connectionSuccess', (data) => {
-        playerIdRef.current = data.playerId; // Almacena el ID del jugador
+        playerIdRef.current = data.playerId;
         onConnectionSuccess(data);
       });
     }
@@ -51,13 +48,11 @@ export const useSocketManager = (eventHandlers) => {
     if (onActionReceived) currentSocket.on('actionReceived', onActionReceived);
     if (onTurnUpdate) currentSocket.on('turnUpdate', onTurnUpdate);
 
-    // Limpieza al desmontar el componente
     return () => {
       console.log('Desconectando socket y limpiando listeners...');
       currentSocket.off('connect', handleConnect);
       currentSocket.off('disconnect', handleDisconnect);
       currentSocket.off('connect_error', handleConnectError);
-
       if (onConnectionSuccess) currentSocket.off('connectionSuccess');
       if (onStatusUpdate) currentSocket.off('statusUpdate');
       if (onWaitingPlayersCountUpdate) currentSocket.off('waitingPlayersCountUpdate');
@@ -66,24 +61,20 @@ export const useSocketManager = (eventHandlers) => {
       if (onActionError) currentSocket.off('actionError');
       if (onActionReceived) currentSocket.off('actionReceived');
       if (onTurnUpdate) currentSocket.off('turnUpdate');
-      
       currentSocket.disconnect();
     };
-    // Las dependencias son los manejadores. Si cambian, el efecto se re-ejecuta.
-    // Asegúrate de que estos manejadores estén envueltos en useCallback en App.jsx.
   }, [
     onConnectionSuccess, onStatusUpdate, onWaitingPlayersCountUpdate,
     onGameStarted, onOpponentLeft, onActionError, onActionReceived, onTurnUpdate
   ]);
 
-  // Función para enviar acciones al servidor
   const sendPlayerAction = useCallback((actionData) => {
     if (socketRef.current && socketRef.current.connected) {
       socketRef.current.emit('player-action', actionData);
     } else {
       console.error('Socket no conectado. No se puede enviar la acción.');
     }
-  }, []); // No hay dependencias aquí ya que socketRef.current no debería cambiar su identidad una vez asignado
+  }, []);
 
-  return { sendPlayerAction, playerId: playerIdRef }; // Exponer playerIdRef para que App.jsx pueda leerlo
+  return { sendPlayerAction, playerId: playerIdRef };
 };

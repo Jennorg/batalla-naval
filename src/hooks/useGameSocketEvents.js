@@ -3,8 +3,8 @@ import io from 'socket.io-client';
 import FASES_JUEGO from '@/assets/FASES_DE_JUEGO.JS';
 import Tablero from '@/classes/tablero/Tablero';
 
-// const SOCKET_SERVER_URL = 'https://backend-batallanaval.onrender.com'
-const SOCKET_SERVER_URL = 'http://localhost:3000';
+const SOCKET_SERVER_URL = 'https://backend-batallanaval.onrender.com'
+// const SOCKET_SERVER_URL = 'http://localhost:3000';
 
 export const useGameSocketEvents = ({
   mode,
@@ -19,9 +19,9 @@ export const useGameSocketEvents = ({
   setTeamId,
   setPlayersInGame,
   playerId,
-  setOpponent1Id, // Función para actualizar el estado del oponente 1 en el componente padre
-  setOpponent2Id, // Función para actualizar el estado del oponente 2 en el componente padre
-  setOpponent3Id, // Función para actualizar el estado del oponente 3 en el componente padre
+  setOpponent1Id,
+  setOpponent2Id,
+  setOpponent3Id,
 }) => {
   const socketRef = useRef(null);
   const internalOpponent1IdRef = useRef(null); 
@@ -220,13 +220,11 @@ export const useGameSocketEvents = ({
   }, [mode, setTableroPlayer, setTableroOpponent1, setTableroOpponent2, setTableroOpponent3, setMessage, setGamePhase, setCurrentPlayerTurn, playerId, setTeamId, setPlayersInGame, reconstructBoard, setOpponent1Id, setOpponent2Id, setOpponent3Id]);
 
   useEffect(() => {
-    // Si el modo no es multijugador, desconecta el socket si existe y limpia.
     if (mode !== 'multiplayer' && mode !== '2vs2') {
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
       }
-      // Limpia explícitamente los estados de los oponentes si el modo no es multijugador
       setOpponent1Id(null);
       setOpponent2Id(null);
       setOpponent3Id(null);
@@ -241,7 +239,7 @@ export const useGameSocketEvents = ({
         socketRef.current.disconnect();
         socketRef.current = null;
     }
-    // **Añade esta limpieza aquí para asegurar que los estados sean null al inicio de una nueva conexión**
+  
     internalOpponent1IdRef.current = null;
     internalOpponent2IdRef.current = null;
     internalOpponent3IdRef.current = null;
@@ -250,11 +248,10 @@ export const useGameSocketEvents = ({
     setOpponent3Id(null); 
     setGameId(null);
     setCurrentPlayerTurn(null);
-    setGamePhase(FASES_JUEGO.LOBBY); // O la fase inicial que desees para una nueva búsqueda.
+    setGamePhase(FASES_JUEGO.LOBBY);
     setPlayersInGame([]);
     setTeamId(null);
     
-    // Crea una nueva instancia de socket.
     socketRef.current = io(SOCKET_SERVER_URL);
 
     socketRef.current.on('connect', () => {
@@ -280,8 +277,6 @@ export const useGameSocketEvents = ({
       setGamePhase(FASES_JUEGO.COLOCACION);
       setCurrentPlayerTurn(null);
 
-      // Los estados ya se limpiaron al inicio del useEffect. Aquí solo actualizamos.
-      // (Mantener esta lógica es bueno por si `gameFound` llega antes que `GAME_STATE_UPDATE` inicial)
       if (mode === 'multiplayer') {
           const foundOpponentId = (data.opponentIds && data.opponentIds.length > 0) 
                                    ? data.opponentIds[0] 
@@ -336,7 +331,7 @@ export const useGameSocketEvents = ({
       setOpponent3Id(null); 
       setGameId(null);
       setCurrentPlayerTurn(null);
-      setGamePhase(FASES_JUEGO.LOBBY); // O la fase inicial adecuada
+      setGamePhase(FASES_JUEGO.LOBBY);
       setPlayersInGame([]);
       setTeamId(null);
       if (socketRef.current) {

@@ -5,12 +5,10 @@
   justify-content: center;
   padding: 15px 20px;
   margin: 8px;
-  /* Fondo y borde que se integran con el tema oscuro del tablero */
   background: var(--background-component);
   border: 2px solid var(--secondary-dark-blue);
   border-radius: var(--border-radius-sm);
-  
-  color: var(--text-light); /* Color de texto claro para visibilidad */
+  color: var(--text-light);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 1.1em;
   font-weight: 600;
@@ -19,8 +17,8 @@
   box-shadow: var(--box-shadow-light);
   text-align: center;
   min-width: 150px;
-  position: relative; /* Para posibles iconos o elementos flotantes */
-  overflow: hidden; /* Para asegurar que los efectos no se desborden */
+  position: relative;
+  overflow: hidden;
 }
 
 .pieza-btn::before {
@@ -36,60 +34,58 @@
 }
 
 .pieza-btn:hover:not(.pieza-btn-disabled) {
-  background: var(--hover-blue); /* Color de hover similar al de las celdas del tablero */
+  background: var(--hover-blue);
   border-color: var(--border-blue);
   transform: translateY(-3px);
   box-shadow: var(--box-shadow-hover);
 }
 
 .pieza-btn-selected {
-  background: linear-gradient(135deg, var(--accent-green) 60%, #1e8e3e 100%); /* Verde de selección fuerte */
+  background: linear-gradient(135deg, var(--accent-green) 60%, #1e8e3e 100%);
   color: white;
-  border-color: #2ecc40; /* Borde más brillante */
-  box-shadow: 0 4px 12px rgba(46, 204, 64, 0.5); /* Sombra con el color de acento */
+  border-color: #2ecc40;
+  box-shadow: 0 4px 12px rgba(46, 204, 64, 0.5);
   transform: scale(1.02);
 }
 
 .pieza-btn-disabled {
-  background: var(--secondary-dark-blue); /* Similar al fondo de celda base */
-  color: var(--text-dark); /* Texto atenuado */
+  background: var(--secondary-dark-blue);
+  color: var(--text-dark);
   border-color: var(--border-blue);
   cursor: not-allowed;
-  opacity: 0.6; /* Un poco menos opaco para que se vea parte del color */
+  opacity: 0.6;
   box-shadow: none;
   transform: none;
 }
 
 .pieza-btn-qty {
   font-size: 0.85em;
-  color: var(--text-dark); /* Color más oscuro para el texto secundario */
+  color: var(--text-dark);
   margin-top: 5px;
   font-weight: 400;
-  z-index: 1; /* Asegura que el texto esté sobre el ::before */
+  z-index: 1;
 }
 
 .pieza-btn-selected .pieza-btn-qty {
-  color: rgba(255, 255, 255, 0.85); /* Blanco translúcido para cantidad seleccionada */
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .pieza-btn-disabled .pieza-btn-qty {
-  color: #6a7a94; /* Gris azulado para cantidad deshabilitada */
+  color: #6a7a94;
 }
 
-/* Animación sutil al hacer clic para retroalimentación */
 .pieza-btn:active:not(.pieza-btn-disabled) {
   transform: translateY(0);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  background: var(--hover-blue); /* Un ligero cambio al presionar */
+  background: var(--hover-blue);
 }
 
-/* Estilos adicionales si quieres un efecto "brillante" en el borde seleccionado */
 .pieza-btn-selected {
   animation: pulseBorder 1.5s infinite ease-in-out;
 }
 
-/* @keyframes pulseBorder {
+@keyframes pulseBorder {
   0% { border-color: #2ecc40; box-shadow: 0 0 0px 0px rgba(46, 204, 64, 0.5); }
   50% { border-color: #5cff77; box-shadow: 0 0 10px 4px rgba(46, 204, 64, 0.7); }
   100% { border-color: #2ecc40; box-shadow: 0 0 0px 0px rgba(46, 204, 64, 0.5); }
-} */
+}

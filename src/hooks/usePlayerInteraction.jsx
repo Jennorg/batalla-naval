@@ -28,11 +28,11 @@ export const usePlayerInteraction = ({
   setMessage,
   gameId,
   sendPlayerAction,
-  playerId, // Ref a playerId.current
+  playerId,
   handleRivalTurnIA,
   setCurrentPlayerTurn,
   setGamePhase,
-  opponent1Id, // Estos son los IDs individuales (props del padre)
+  opponent1Id,
   opponent2Id,
   opponent3Id,
   playersInGame,
@@ -137,11 +137,6 @@ export const usePlayerInteraction = ({
       return;
     }
 
-    // --- LOG DE DEPURACIÓN DE ATAQUE ---
-    console.log(`[FRONTEND - usePlayerInteraction] Intentando ataque. Modo: ${mode}, Target: ${targetPlayerId?.substring(0,6)}...`);
-    console.log(`[FRONTEND - usePlayerInteraction] Oponentes actuales (PROPS): O1:${opponent1Id?.substring(0,6)}..., O2:${opponent2Id?.substring(0,6)}..., O3:${opponent3Id?.substring(0,6)}...`);
-    // --- FIN LOG DE DEPURACIÓN DE ATAQUE ---
-
     if (mode === 'ai') {
       if (tableroOpponent1.grid[row][col].isHit) {
         setMessage('Ya atacaste esta celda. Elige otra.');
@@ -166,24 +161,20 @@ export const usePlayerInteraction = ({
       }
 
       const validOpponentIds = [];
-      if (mode === 'multiplayer') { // Modo 1v1
-          if (opponent1Id) { // Esta validación es crucial y ahora debería funcionar correctamente
+      if (mode === 'multiplayer') {
+          if (opponent1Id) {
               validOpponentIds.push(opponent1Id);
           }
-      } else if (mode === '2vs2') { // Modo 2v2
+      } else if (mode === '2vs2') {
           if (opponent1Id) validOpponentIds.push(opponent1Id);
           if (opponent2Id) validOpponentIds.push(opponent2Id);
           if (opponent3Id) validOpponentIds.push(opponent3Id);
       }
       
-      // Validar si el targetPlayerId es uno de los oponentes válidos
       if (!targetPlayerId || !validOpponentIds.includes(targetPlayerId)) {
           setMessage('Error: Debes seleccionar el tablero de un rival válido para atacar.');
-          console.error(`[FRONTEND - usePlayerInteraction] Ataque fallido: TargetPlayerId (${targetPlayerId?.substring(0,6)}...) no válido o no encontrado en oponentes:`, validOpponentIds.map(id => id?.substring(0,6) + '...'));
           return;
       }
-
-      console.log(`[FRONTEND - usePlayerInteraction] Enviando acción de ataque a targetPlayerId: ${targetPlayerId?.substring(0,6)}...`);
 
       sendPlayerAction({
         type: 'ATTACK',
@@ -198,18 +189,16 @@ export const usePlayerInteraction = ({
     tableroOpponent1, setTableroOpponent1, 
     setMessage, setGamePhase,
     setCurrentPlayerTurn, handleRivalTurnIA,
-    // Las dependencias para los IDs de oponentes son cruciales aquí
     opponent1Id, opponent2Id, opponent3Id 
   ]);
 
   const handleOpponent1BoardClick = useCallback((row, col) => {
-    // Asegurarse de que opponent1Id no sea nulo antes de llamar a handleAttackAction
     if (!opponent1Id) {
         setMessage('Error: El oponente 1 no está disponible para atacar.');
         return;
     }
     handleAttackAction(opponent1Id, row, col);
-  }, [handleAttackAction, opponent1Id, setMessage]); // opponent1Id y setMessage como dependencia
+  }, [handleAttackAction, opponent1Id, setMessage]);
 
   const handleOpponent2BoardClick = useCallback((row, col) => {
     if (mode === '2vs2') {
@@ -221,7 +210,7 @@ export const usePlayerInteraction = ({
     } else {
       setMessage('Este tablero no es accesible en el modo actual.');
     }
-  }, [handleAttackAction, mode, opponent2Id, setMessage]); // opponent2Id y setMessage como dependencia
+  }, [handleAttackAction, mode, opponent2Id, setMessage]);
 
   const handleOpponent3BoardClick = useCallback((row, col) => {
     if (mode === '2vs2') {
@@ -233,7 +222,7 @@ export const usePlayerInteraction = ({
     } else {
       setMessage('Este tablero no es accesible en el modo actual.');
     }
-  }, [handleAttackAction, mode, opponent3Id, setMessage]); // opponent3Id y setMessage como dependencia
+  }, [handleAttackAction, mode, opponent3Id, setMessage]);
 
   return {
     handleSelectShipType,

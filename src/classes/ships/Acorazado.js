@@ -4,11 +4,9 @@ class Acorazado extends Pieza {
     constructor(id = null, hits = 0, orientation = null, positions = [], ownerId = null) {
         super(id, "Acorazado", 4, hits, orientation, positions, ownerId);
     }
-
     isSunk() {
         return this.hits >= this.size;
     }
-
     toSimpleObject() {
         return {
             id: this.id,

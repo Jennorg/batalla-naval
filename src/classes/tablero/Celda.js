@@ -1,16 +1,14 @@
-// Celda.js
 class Celda {
     constructor(row, col) {
         this.row = row;
         this.col = col;
-        this.isOccupied = false; // Indica si tiene parte de un barco
-        this.shipId = null;      // ID del barco que ocupa esta celda
-        this.shipName = null;    // Nombre del barco que ocupa esta celda
-        this.isHit = false;      // Indica si la celda ha sido atacada
-        this.isSunkShipPart = false; // Indica si la celda es parte de un barco hundido
+        this.isOccupied = false;
+        this.shipId = null;
+        this.shipName = null;
+        this.isHit = false;
+        this.isSunkShipPart = false;
     }
 
-    // Serializa la instancia de Celda a un objeto plano
     toSimpleObject() {
         return {
             row: this.row,
@@ -23,7 +21,6 @@ class Celda {
         };
     }
 
-    // Reconstruye una instancia de Celda desde un objeto plano
     static fromObject(obj) {
         const celda = new Celda(obj.row, obj.col);
         celda.isOccupied = obj.isOccupied || false;
