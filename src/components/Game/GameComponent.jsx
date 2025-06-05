@@ -37,6 +37,12 @@ function GameComponent({ mode }) {
 
   const playerId = useRef(null);
 
+  useEffect(() => {
+      console.log("[GameComponent] opponent1Id (estado del padre) actualizado a:", opponent1Id);
+      console.log("[GameComponent] gamePhase actual:", gamePhase);
+      console.log("[GameComponent] gameId actual:", gameId);
+  }, [opponent1Id, gamePhase, gameId]);
+
   const { sendPlayerAction, currentSocketPlayerId } = (mode === 'multiplayer' || mode === '2vs2')
     ? useGameSocketEvents({
         mode,
@@ -86,14 +92,10 @@ function GameComponent({ mode }) {
     setPreviewInvalidCells([]);
 
     setCurrentPlayerTurn(null);
-    setGamePhase(FASES_JUEGO.LOBBY);
     setMessage('Esperando jugadores en el lobby...');
     setGameId(null);
     setTeamId(null); 
     setPlayersInGame([]);
-    setOpponent1Id(null);
-    setOpponent2Id(null);
-    setOpponent3Id(null);
   }, [initialShipCounts, mode]);
 
   useEffect(() => {
@@ -101,11 +103,12 @@ function GameComponent({ mode }) {
         resetGame();
         setGamePhase(FASES_JUEGO.COLOCACION);
         setMessage('Coloca tus barcos. Selecciona un barco y haz clic en el tablero.');
-    } else if (mode === '2vs2') {
-      resetGame();
-      setMessage('Esperando a que el juego inicie y puedas colocar tus barcos...');
+    } else if (mode === 'multiplayer' || mode === '2vs2') {
+        resetGame();
+        setMessage('Esperando a que el juego inicie y puedas colocar tus barcos...');
+        setGamePhase(FASES_JUEGO.LOBBY);
     }
-  }, [mode, resetGame]);
+  }, [mode, resetGame, setGamePhase, setMessage]);
 
   useEffect(() => {
     if (gamePhase === FASES_JUEGO.COLOCACION && mode === '2vs2') {
@@ -259,7 +262,6 @@ function GameComponent({ mode }) {
         </p>
       )}
 
-      {/* Apply the conditional class here */}
       <div className={`game-boards-container ${mode === '2vs2' ? 'mode-2vs2' : 'mode-1v1-ai'}`}>
         <div className="tablero-area-jugador">
           <h2>Tu Flota ({gamePhase === FASES_JUEGO.COLOCACION ? "Colocando" : "Defendiendo"})</h2>

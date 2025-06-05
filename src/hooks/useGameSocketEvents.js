@@ -3,8 +3,8 @@ import io from 'socket.io-client';
 import FASES_JUEGO from '@/assets/FASES_DE_JUEGO.JS';
 import Tablero from '@/classes/tablero/Tablero';
 
-const SOCKET_SERVER_URL = 'https://backend-batallanaval.onrender.com'
-// const SOCKET_SERVER_URL = 'http://localhost:3000';
+// const SOCKET_SERVER_URL = 'https://backend-batallanaval.onrender.com'
+const SOCKET_SERVER_URL = 'http://localhost:3000';
 
 export const useGameSocketEvents = ({
   mode,
@@ -19,9 +19,9 @@ export const useGameSocketEvents = ({
   setTeamId,
   setPlayersInGame,
   playerId,
-  setOpponent1Id,
-  setOpponent2Id,
-  setOpponent3Id,
+  setOpponent1Id, // Función para actualizar el estado del oponente 1 en el componente padre
+  setOpponent2Id, // Función para actualizar el estado del oponente 2 en el componente padre
+  setOpponent3Id, // Función para actualizar el estado del oponente 3 en el componente padre
 }) => {
   const socketRef = useRef(null);
   const internalOpponent1IdRef = useRef(null); 
@@ -30,28 +30,33 @@ export const useGameSocketEvents = ({
 
   const sendPlayerAction = useCallback((actionData) => {
     if (socketRef.current && socketRef.current.connected) {
-      if (actionData.type === 'ATTACK') {
-        if (mode === 'multiplayer') {
-          if (!internalOpponent1IdRef.current) {
-            setMessage('Error: No se puede atacar, ID del oponente desconocido.');
-            return;
-          }
-          actionData.targetPlayerId = internalOpponent1IdRef.current;
-        } else if (mode === '2vs2') {
-          const validTargets = [internalOpponent1IdRef.current, internalOpponent2IdRef.current, internalOpponent3IdRef.current].filter(Boolean);
-          if (!actionData.targetPlayerId || !validTargets.includes(actionData.targetPlayerId)) {
-              setMessage('Error: Debes seleccionar un tablero rival para atacar.');
-              return;
-          }
-        }
-      }
-
-      socketRef.current.emit('playerAction', {
+      const payload = {
         ...actionData,
         gameId: actionData.gameId || null,
         senderId: playerId.current || null,
         mode: mode
-      });
+      };
+
+      if (actionData.type === 'ATTACK') {
+        if (mode === 'multiplayer') {
+          if (!internalOpponent1IdRef.current) {
+            setMessage('Error: No se puede atacar, ID del oponente desconocido (interno).');
+            return;
+          }
+          payload.targetPlayerId = internalOpponent1IdRef.current;
+        } else if (mode === '2vs2') {
+          const validTargets = [internalOpponent1IdRef.current, internalOpponent2IdRef.current, internalOpponent3IdRef.current].filter(Boolean);
+          if (!actionData.targetPlayerId || !validTargets.includes(actionData.targetPlayerId)) {
+              setMessage('Error: Debes seleccionar un tablero rival válido para atacar.');
+              return;
+          }
+          payload.targetPlayerId = actionData.targetPlayerId;
+        }
+      }
+
+      console.log(`[FRONTEND - sendPlayerAction] Emitiendo acción:`, payload);
+
+      socketRef.current.emit('playerAction', payload);
     } else {
       setMessage('Error de conexión: No se pudo enviar la acción.');
     }
@@ -141,24 +146,24 @@ export const useGameSocketEvents = ({
         setOpponent2Id(null);
         setOpponent3Id(null);
 
-        if (currentOpponentsIds[0]) {
+        if (currentOpponentsIds.length > 0) {
             internalOpponent1IdRef.current = currentOpponentsIds[0];
             setOpponent1Id(currentOpponentsIds[0]);
-            setTableroOpponent1(reconstructBoard(opponentBoards[currentOpponentsIds[0]]));
+            setTableroOpponent1(reconstructBoard(opponentBoards ? opponentBoards[currentOpponentsIds[0]] : null));
         } else {
              setTableroOpponent1(new Tablero());
         }
-        if (currentOpponentsIds[1]) {
+        if (currentOpponentsIds.length > 1) {
             internalOpponent2IdRef.current = currentOpponentsIds[1];
             setOpponent2Id(currentOpponentsIds[1]);
-            setTableroOpponent2(reconstructBoard(opponentBoards[currentOpponentsIds[1]]));
+            setTableroOpponent2(reconstructBoard(opponentBoards ? opponentBoards[currentOpponentsIds[1]] : null));
         } else {
              setTableroOpponent2(new Tablero());
         }
-        if (currentOpponentsIds[2]) {
+        if (currentOpponentsIds.length > 2) {
             internalOpponent3IdRef.current = currentOpponentsIds[2];
             setOpponent3Id(currentOpponentsIds[2]);
-            setTableroOpponent3(reconstructBoard(opponentBoards[currentOpponentsIds[2]]));
+            setTableroOpponent3(reconstructBoard(opponentBoards ? opponentBoards[currentOpponentsIds[2]] : null));
         } else {
              setTableroOpponent3(new Tablero());
         }
@@ -215,15 +220,20 @@ export const useGameSocketEvents = ({
   }, [mode, setTableroPlayer, setTableroOpponent1, setTableroOpponent2, setTableroOpponent3, setMessage, setGamePhase, setCurrentPlayerTurn, playerId, setTeamId, setPlayersInGame, reconstructBoard, setOpponent1Id, setOpponent2Id, setOpponent3Id]);
 
   useEffect(() => {
+    // Si el modo no es multijugador, desconecta el socket si existe y limpia.
     if (mode !== 'multiplayer' && mode !== '2vs2') {
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
       }
+      // Limpia explícitamente los estados de los oponentes si el modo no es multijugador
+      setOpponent1Id(null);
+      setOpponent2Id(null);
+      setOpponent3Id(null);
       return;
     }
 
-    if (socketRef.current && socketRef.current.connected && socketRef.current._hasRequestedGameMode === mode) {
+    if (socketRef.current && socketRef.current.connected && socketRef.current._hasRequestedGameMode === mode && playerId.current === socketRef.current.id) {
         return;
     }
 
@@ -231,7 +241,20 @@ export const useGameSocketEvents = ({
         socketRef.current.disconnect();
         socketRef.current = null;
     }
+    // **Añade esta limpieza aquí para asegurar que los estados sean null al inicio de una nueva conexión**
+    internalOpponent1IdRef.current = null;
+    internalOpponent2IdRef.current = null;
+    internalOpponent3IdRef.current = null;
+    setOpponent1Id(null); 
+    setOpponent2Id(null); 
+    setOpponent3Id(null); 
+    setGameId(null);
+    setCurrentPlayerTurn(null);
+    setGamePhase(FASES_JUEGO.LOBBY); // O la fase inicial que desees para una nueva búsqueda.
+    setPlayersInGame([]);
+    setTeamId(null);
     
+    // Crea una nueva instancia de socket.
     socketRef.current = io(SOCKET_SERVER_URL);
 
     socketRef.current.on('connect', () => {
@@ -257,20 +280,17 @@ export const useGameSocketEvents = ({
       setGamePhase(FASES_JUEGO.COLOCACION);
       setCurrentPlayerTurn(null);
 
-      internalOpponent1IdRef.current = null;
-      internalOpponent2IdRef.current = null;
-      internalOpponent3IdRef.current = null;
-      setOpponent1Id(null); 
-      setOpponent2Id(null); 
-      setOpponent3Id(null);
-
+      // Los estados ya se limpiaron al inicio del useEffect. Aquí solo actualizamos.
+      // (Mantener esta lógica es bueno por si `gameFound` llega antes que `GAME_STATE_UPDATE` inicial)
       if (mode === 'multiplayer') {
-          internalOpponent1IdRef.current = data.opponentId;
-          setOpponent1Id(data.opponentId);
-          setMessage(`Partida 1vs1 ${data.gameId?.substring(0,10)}... encontrada. Tu oponente es: ${data.opponentId?.substring(0,6)}... ¡Coloca tus barcos!`);
+          const foundOpponentId = (data.opponentIds && data.opponentIds.length > 0) 
+                                   ? data.opponentIds[0] 
+                                   : null;
+          internalOpponent1IdRef.current = foundOpponentId;
+          setOpponent1Id(foundOpponentId); 
+          setMessage(`Partida 1vs1 ${data.gameId?.substring(0,10)}... encontrada. Tu oponente es: ${foundOpponentId?.substring(0,6) || 'desconocido'}... ¡Coloca tus barcos!`);
       } else if (mode === '2vs2') {
           setTeamId(data.teamId); 
-          
           if (data.playersInGame && Array.isArray(data.playersInGame)) {
               setPlayersInGame(data.playersInGame);
               const opponents = [];
@@ -307,15 +327,16 @@ export const useGameSocketEvents = ({
 
     socketRef.current.on('disconnect', (reason) => {
       setMessage('Desconectado del servidor.');
-      setGameId(null);
-      setCurrentPlayerTurn(null);
-      setGamePhase(FASES_JUEGO.COLOCACION);
+    
       internalOpponent1IdRef.current = null;
       internalOpponent2IdRef.current = null;
       internalOpponent3IdRef.current = null;
       setOpponent1Id(null); 
       setOpponent2Id(null); 
       setOpponent3Id(null); 
+      setGameId(null);
+      setCurrentPlayerTurn(null);
+      setGamePhase(FASES_JUEGO.LOBBY); // O la fase inicial adecuada
       setPlayersInGame([]);
       setTeamId(null);
       if (socketRef.current) {
@@ -335,7 +356,7 @@ export const useGameSocketEvents = ({
         socketRef.current.off('gameStarted');
         socketRef.current.off('disconnect');
         socketRef.current.off('error');
-        socketRef.current.disconnect();
+        socketRef.current.disconnect(); 
         socketRef.current = null;
         internalOpponent1IdRef.current = null;
         internalOpponent2IdRef.current = null;
@@ -355,7 +376,7 @@ export const useGameSocketEvents = ({
     setTableroOpponent3,
     setTeamId,
     setPlayersInGame,
-    setOpponent1Id,
+    setOpponent1Id, 
     setOpponent2Id,
     setOpponent3Id,
   ]);
@@ -363,8 +384,5 @@ export const useGameSocketEvents = ({
   return { 
     sendPlayerAction, 
     currentSocketPlayerId: playerId, 
-    opponent1Id: internalOpponent1IdRef.current,
-    opponent2Id: internalOpponent2IdRef.current,
-    opponent3Id: internalOpponent3IdRef.current
   };
 };
