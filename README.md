@@ -1,12 +1,33 @@
-# React + Vite
+# Batalla Naval 
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Batalla Naval es un juego clásico de estrategia donde dos o más jugadores colocan barcos en un tablero y tratan de hundir los barcos del oponente adivinando sus posiciones. El objetivo es ser el primero en hundir todos los barcos rivales.
 
-Currently, two official plugins are available:
+## Objetivo del Juego
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Coloca tus barcos estratégicamente en el tablero y ataca las posiciones del oponente. Gana el jugador o equipo que logre hundir todos los barcos enemigos antes que el rival.
 
-## Expanding the ESLint configuration
+## Cómo jugar en local
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. Clona este repositorio:
+   ```bash
+   git clone https://github.com/Jennorg/batalla-naval
+   cd batalla-naval
+   ```
+2. Instala las dependencias:
+   ```bash
+   npm install
+   ```
+3. Asegúrate de tener corriendo el servidor backend en local. Puedes encontrar el código y las instrucciones aquí:
+   [Repositorio Backend Batalla Naval](https://github.com/jgarcia691/Backend_BatallaNaval)
+   
+4. Inicia la aplicación en modo desarrollo:
+   ```bash
+   npm run dev
+   ```
+5. Abre tu navegador en [http://localhost:5173](http://localhost:5173) para jugar.
+
+## Juega en línea
+
+También puedes jugar directamente desde la versión desplegada en la nube:
+
+- [Jugar Batalla Naval Online](https://vercel.com/jennorgs-projects/batalla-naval/Awv3nSPadBEVbwXBbqj78v3KrjT3)
