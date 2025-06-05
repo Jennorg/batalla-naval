@@ -9,9 +9,9 @@
   border: 2.5px solid #2b3a55;
   padding: 12px;
   position: relative;
-  max-width: 370px;
-  margin: 0 auto;
-  aspect-ratio: 1/1;
+  width: 100%; /* Asegura que el tablero ocupe el 100% del ancho de su contenedor */
+  aspect-ratio: 1/1; /* Mantiene el tablero cuadrado basándose en su ancho */
+  min-width: fit-content;
 }
 
 .tablero-overlay {
@@ -63,17 +63,10 @@
 }
 
 .cell-sunk-ship {
-  background: linear-gradient(135deg, #4a4a4a 60%, #2a2a2a 100%); /* Un gris oscuro, por ejemplo */
+  background: linear-gradient(135deg, #4a4a4a 60%, #2a2a2a 100%);
   border: 2px solid #000;
   color: #ccc; 
-  /* Puedes añadir una animación o estilo más distintivo aquí */
-  /* Por ejemplo: animation: sinkPulse 1s ease-in-out infinite alternate; */
 }
-
-/* @keyframes sinkPulse {
-  0% { box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); }
-  100% { box-shadow: 0 0 15px rgba(0, 0, 0, 0.8); }
-} */
 
 .cell-miss {
   background: linear-gradient(135deg, #7ecbff 60%, #3a7ca5 100%);

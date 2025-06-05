@@ -1,10 +1,8 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-
 import HomePage from '@/components/HomePage';
-import GameComponent from '@/components/Game/GameComponent'; // Tu GameComponent central
-
-import './App.css';
+import GameComponent from '@/components/Game/GameComponent';
+import './index.css';
 
 function App() {
   return (

@@ -88,8 +88,8 @@
   animation: pulseBorder 1.5s infinite ease-in-out;
 }
 
-@keyframes pulseBorder {
+/* @keyframes pulseBorder {
   0% { border-color: #2ecc40; box-shadow: 0 0 0px 0px rgba(46, 204, 64, 0.5); }
   50% { border-color: #5cff77; box-shadow: 0 0 10px 4px rgba(46, 204, 64, 0.7); }
   100% { border-color: #2ecc40; box-shadow: 0 0 0px 0px rgba(46, 204, 64, 0.5); }
-}
+} */

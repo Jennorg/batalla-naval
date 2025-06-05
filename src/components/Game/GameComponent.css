@@ -1,18 +1,80 @@
+:root {
+  --primary-dark-bg: #1a2634; /* Fondo principal de la aplicación */
+  --secondary-dark-bg: #22304a; /* Fondo para secciones/componentes */
+  --text-light: #e0e0e0; /* Color de texto principal */
+  --text-secondary: #a3b3cc; /* Color de texto secundario/etiquetas */
+  --accent-green: #2ecc40; /* Verde para acciones positivas/éxito */
+  --accent-blue: #007bff; /* Azul para botones interactivos */
+  --accent-red: #ff4e4e; /* Rojo para estados de peligro/reiniciar */
+  --border-color-dark: #2b3a55; /* Bordes generales */
+  --border-color-light: #3e4a63; /* Bordes más claros */
+
+  --font-family-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --border-radius-main: 16px; /* Para contenedores grandes */
+  --border-radius-sm: 8px; /* Para botones y elementos pequeños */
+  --transition-speed: 0.3s;
+  --box-shadow-deep: 0 8px 20px rgba(0, 0, 0, 0.4);
+  --box-shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-base);
+  background: linear-gradient(180deg, #0e161f 0%, var(--primary-dark-bg) 100%);
+  color: var(--text-light);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px 10px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+h1 {
+  font-size: 2.8em;
+  color: var(--accent-blue);
+  text-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+h2 {
+  font-size: 1.6em;
+  color: var(--text-light);
+  margin: 0;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+h3 {
+  font-size: 1.3em;
+  color: var(--text-secondary);
+  margin: 0;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------------- */
+/* -------------------- Estilos para GameComponent ---------------------- */
+/* ---------------------------------------------------------------------- */
+
 .gameContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  width: 80dvw;
+  width: 95dvw;
   padding: 30px;
   background-color: var(--secondary-dark-bg);
   border-radius: var(--border-radius-main);
   box-shadow: var(--box-shadow-deep);
   border: 1px solid var(--border-color-dark);
   box-sizing: border-box;
-  max-height: 95dvh;
-  overflow-y: auto;
   max-width: 1600px;
+  min-height: calc(100dvh - 40px);
+  justify-content: center;
 }
 
 h1 {
@@ -78,42 +140,33 @@ h3 {
 /* --- Base Grid Container for all boards and controls --- */
 .game-boards-container {
   display: grid;
-  gap: 30px; /* Default gap for larger screens */
+  gap: 30px;
   width: 100%;
-  max-width: 1400px; /* Adjusted max-width */
+  max-width: 2000px;
   align-items: flex-start;
   box-sizing: border-box;
-  justify-items: center; /* Center items within their grid cells by default */
+  justify-items: center;
+  flex-grow: 1;
 }
 
-/* --- Layout for 1v1 (AI or Multiplayer) - 5 conceptual columns --- */
+/* --- Layout for 1v1 (AI or Multiplayer) - 3 columns horizontal --- */
 .game-boards-container.mode-1v1-ai {
-  grid-template-columns: 2fr 1fr 2fr; /* This creates 3 explicit columns for content distribution */
-  /* Visually, the 2fr on the sides will contain the boards (spanning 2 conceptual columns each),
-     and the 1fr in the middle will contain the controls (spanning 1 conceptual column).
-     We use 'grid-column: span 2' on the boards to achieve the "occupy 2 columns" effect within a 5-column *conceptual* grid.
-     However, a simpler and more direct approach for the 3 actual content areas is:
-     grid-template-columns: 2fr 1fr 2fr; and let the elements span accordingly.
-     Given the prompt's request for "5 columns and boards occupy 2",
-     I will use a 5-column *explicit* grid and span the elements.
-  */
-  grid-template-columns: 2fr 1fr auto 1fr 2fr; /* 5 explicit columns (LeftPadding | PlayerBoard | Controls | OpponentBoard | RightPadding) */
-  /* Using 'auto' for controls in column 3 to let it take its natural width */
-  grid-template-areas:
-    ". player-board controls opponent1-board ." /* The dots are empty cells to facilitate spacing */
-    ". . . . ."; /* An empty row to keep structure if needed */
-  gap: 15px; /* Smaller gap for horizontal spread */
+  /* CAMBIO CLAVE AQUÍ: Reducir el ancho de la columna de controles */
+  /* minmax(200px, 350px) para controles más pequeños */
+  grid-template-columns: 1.2fr minmax(200px, 350px) 1.2fr; /* Tableros con más peso (1.2fr) */
+  grid-template-areas: "player-board controls opponent1-board";
+  gap: 20px;
 }
 
 /* --- Layout for 2v2 (4 Players) - 2x2 grid for boards + controls below --- */
 .game-boards-container.mode-2vs2 {
-  grid-template-columns: 1fr 1fr; /* Two equal columns for the boards */
-  grid-template-rows: auto auto auto; /* Three rows: row1 boards, row2 boards, row3 controls */
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
   grid-template-areas:
     "player-board opponent1-board"
     "opponent2-board opponent3-board"
-    "controls controls"; /* Controls span both columns at the bottom */
-  gap: 20px; /* Standard gap for a 2x2 arrangement */
+    "controls controls";
+  gap: 20px;
 }
 
 /* --- Common styles for all board areas and control areas --- */
@@ -127,22 +180,23 @@ h3 {
   flex-direction: column;
   align-items: center;
   gap: 15px;
-  padding: 20px;
+  padding: 30px;
   background-color: var(--primary-dark-bg);
   border-radius: var(--border-radius-main);
   box-shadow: var(--box-shadow-medium);
   border: 1px solid var(--border-color-dark);
-  width: 100%; /* Take full width of its grid cell */
+  width: 100%;
   box-sizing: border-box;
-  min-width: 280px;
-  max-width: 450px; /* Max width to keep boards from getting too large */
+  min-width: 280px; /* Asegura un mínimo para que los controles no se rompan */
+  flex-shrink: 1;
 }
 
 .tablero-area-jugador,
 .tablero-area-rival,
 .tablero-area-opponent2,
 .tablero-area-opponent3 {
-  aspect-ratio: 1/1; /* Keeps boards square */
+  aspect-ratio: 1/1;
+  max-width: 450px; /* Aumentado ligeramente para dar más tamaño a los tableros */
 }
 
 /* Specific Grid Area Assignments */
@@ -151,7 +205,7 @@ h3 {
 .tablero-area-opponent2 { grid-area: opponent2-board; }
 .tablero-area-opponent3 { grid-area: opponent3-board; }
 .controles-colocacion { grid-area: controls; }
-.controles-lobby { grid-area: controls; } /* Both share the same grid-area */
+.controles-lobby { grid-area: controls; }
 
 
 .lista-piezas-jugador {
@@ -240,16 +294,41 @@ h3 {
 
 /* Media Queries for Responsiveness */
 
-/* Large Desktops: Maintain specific layout for each mode */
-@media (min-width: 1200px) {
-  /* No changes needed here, as the base .game-boards-container rules handle it */
+/* Large Desktops: Aplica el layout de 3 columnas horizontales (1v1) o 2x2 (2v2) */
+@media (min-width: 1024px) {
+  .game-boards-container.mode-1v1-ai {
+    /* AJUSTE CLAVE AQUÍ: Tableros con más peso (1.2fr) y controles más estrechos */
+    grid-template-columns: 1.2fr minmax(200px, 350px) 1.2fr;
+    grid-template-areas: "player-board controls opponent1-board";
+    gap: 20px;
+  }
+  .game-boards-container.mode-2vs2 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "controls controls"
+      "player-board opponent1-board"
+      "opponent2-board opponent3-board";
+    gap: 20px;
+  }
 }
 
-/* Medium Desktops and Laptops: Adapt layouts */
-@media (max-width: 1199px) and (min-width: 769px) {
+/* Medium Desktops and Laptops: Apila las columnas si el ancho es menor a 1024px */
+@media (max-width: 1023px) {
+  .gameContainer {
+    padding: 20px;
+    gap: 15px;
+    min-height: unset;
+    width: 90dvw;
+  }
+
+  h1 { font-size: 2.4em; }
+  h2 { font-size: 1.5em; }
+  h3 { font-size: 1.2em; }
+  .game-message, .turno-label { font-size: 1.1em; }
+
   .game-boards-container.mode-1v1-ai {
-    /* Stack boards and controls vertically */
-    grid-template-columns: 1fr; /* Single column */
+    grid-template-columns: 1fr;
     grid-template-areas:
       "player-board"
       "controls"
@@ -258,12 +337,11 @@ h3 {
   }
 
   .game-boards-container.mode-2vs2 {
-    /* Maintain 2x2 for boards, controls still at bottom spanning both columns */
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
+      "controls controls"
       "player-board opponent1-board"
-      "opponent2-board opponent3-board"
-      "controls controls";
+      "opponent2-board opponent3-board";      
     gap: 15px;
   }
 
@@ -273,61 +351,13 @@ h3 {
   .tablero-area-opponent3,
   .controles-colocacion,
   .controles-lobby {
-    max-width: 400px; /* Limit width when stacked */
-  }
-}
-
-/* Tablets and Mobiles: Stack all elements in a single column */
-@media (max-width: 768px) {
-  .gameContainer {
-    padding: 15px;
-    gap: 15px;
-    width: 95dvw;
-    max-height: unset;
-    overflow-y: unset;
-  }
-
-  h1 { font-size: 2em; }
-  h2 { font-size: 1.4em; }
-  h3 { font-size: 1.1em; }
-  .game-message, .turno-label {
-    font-size: 0.95em;
-    padding: 10px 15px;
-  }
-
-  .game-boards-container {
-    grid-template-columns: 1fr; /* Single column for all elements */
-    grid-template-areas:
-      "player-board"
-      "controls"
-      "opponent1-board"
-      "opponent2-board"
-      "opponent3-board"; /* Explicitly stack all elements for clarity */
-    gap: 15px;
-  }
-
-  .tablero-area-jugador,
-  .tablero-area-rival,
-  .tablero-area-opponent2,
-  .tablero-area-opponent3,
-  .controles-colocacion,
-  .controles-lobby {
-    max-width: 370px;
-  }
-
-  .controles-colocacion {
-    padding: 15px;
-    gap: 15px;
+    max-width: 400px; /* Mantener la consistencia */
+    padding: 20px;
+    gap: 10px;
   }
 
   .lista-piezas-jugador {
-    gap: 10px;
     max-height: 150px;
-  }
-
-  .btns-colocacion {
-    flex-direction: column;
-    align-items: center;
     gap: 10px;
   }
 
@@ -335,13 +365,95 @@ h3 {
   .btn-batalla,
   .btn-reset,
   .btn-ready-lobby {
-    font-size: 1em;
     padding: 10px 15px;
-    max-width: 200px;
+    font-size: 1em;
     min-width: 100px;
+    max-width: 180px;
+  }
+}
+
+/* Tablets and Mobiles: Stack all elements in a single column */
+@media (max-width: 768px) {
+  .gameContainer {
+    padding: 10px;
+    gap: 10px;
+    width: 98dvw;
+    min-height: unset;
+    /* align-items: stretch; -- Esto puede causar problemas si los hijos tienen max-width y no están centrados */
+    align-items: center; /* CAMBIO: Asegura que los items dentro de gameContainer estén centrados */
+  }
+
+  h1 { font-size: 1.8em; margin-bottom: 5px; }
+  h2 { font-size: 1.2em; margin-bottom: 10px; }
+  h3 { font-size: 1em; margin-bottom: 10px; }
+  .game-message, .turno-label {
+    font-size: 0.9em;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+  }
+
+  .game-boards-container {
+    grid-template-columns: 1fr; /* Fuerza una sola columna */
+    gap: 10px;
+    width: 100%; /* Asegura que el contenedor del grid ocupe todo el ancho */
+    /* CAMBIO CLAVE: Usa margin auto para centrar el game-boards-container en su padre si este tiene un ancho limitado */
+    margin-left: auto;
+    margin-right: auto;
+    /* justify-items: center; ya lo tienes globalmente, lo cual está bien para los items dentro de sus celdas. */
+  }
+
+  .game-boards-container.mode-2vs2 {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "controls"
+      "player-board"
+      "opponent1-board"
+      "opponent2-board"
+      "opponent3-board";
+  }
+  .game-boards-container.mode-1v1-ai {
+    grid-template-areas:
+      "player-board"
+      "controls"
+      "opponent1-board";
+  }
+
+  .tablero-area-jugador,
+  .tablero-area-rival,
+  .tablero-area-opponent2,
+  .tablero-area-opponent3,
+  .controles-colocacion,
+  .controles-lobby {
+    max-width: 320px;
+    gap: 8px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .lista-piezas-jugador {
+    gap: 8px;
+    max-height: 120px;
+    padding-right: 0;
+  }
+
+  .btns-colocacion {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-orientacion,
+  .btn-batalla,
+  .btn-reset,
+  .btn-ready-lobby {
+    font-size: 0.9em;
+    padding: 8px 12px;
+    max-width: 180px;
+    min-width: 90px;
+    flex-basis: unset;
+    height: auto;
   }
   .btn-reset {
     margin-top: 10px;
   }
-  
 }

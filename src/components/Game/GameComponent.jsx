@@ -7,6 +7,7 @@ import { SHIP_TYPES_CONFIG } from '@/assets/SHIP_TYPES_CONFIG.JS';
 import FASES_JUEGO from '@/assets/FASES_DE_JUEGO.JS';
 import { usePlayerInteraction } from '@/hooks/usePlayerInteraction';
 import { useGameSocketEvents } from '@/hooks/useGameSocketEvents';
+import "./GameComponent.css"
 
 function GameComponent({ mode }) {
   const [tableroPlayer, setTableroPlayer] = useState(() => new TableroClass());
@@ -304,7 +305,7 @@ function GameComponent({ mode }) {
                 className="btn-batalla"
                 disabled={placedPlayerShips.length < SHIP_TYPES_CONFIG.reduce((sum, type) => sum + type.initialCount, 0)}
               >
-                {mode === 'multiplayer' || mode === '2vs2' ? "Estoy Listo (Barcos Colocados)" : "Iniciar Batalla (vs IA)"}
+                {mode === 'multiplayer' || mode === '2vs2' ? "Estoy Listo" : "Iniciar Batalla (vs IA)"}
               </button>
             </div>
           </div>
